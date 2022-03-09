@@ -38,11 +38,9 @@ func (L *LinkedList) Append(value string) {
 	L.tail.next = newTail
 	L.tail = newTail
 	L.length++
-
-	return
 }
 
-func (L *LinkedList) prepend(value string) {
+func (L *LinkedList) Prepend(value string) {
 	if L.head == nil {
 		head := &node{
 			value: value,
@@ -74,7 +72,7 @@ func (L *LinkedList) prepend(value string) {
 	L.length++
 }
 
-func (L *LinkedList) insert(index int32, value string) {
+func (L *LinkedList) Insert(index int32, value string) {
 	if L.head == nil {
 		newTail := &node{
 			value: value,
@@ -103,7 +101,6 @@ func (L *LinkedList) insert(index int32, value string) {
 		it.index = it.index + 1
 	}
 
-	// Create the new node
 	newNode := &node{
 		value: value,
 		index: index,
@@ -111,14 +108,12 @@ func (L *LinkedList) insert(index int32, value string) {
 		next:  oldNode,
 	}
 
-	// Insert the new node
 	oldNode.prev.next = newNode
 	oldNode.prev = newNode
 	L.length++
 }
 
-func (L *LinkedList) remove(index int32) {
-	// Loop to the required point
+func (L *LinkedList) Remove(index int32) {
 	var oldNode *node
 	for it := L.head; it != nil; it = it.next {
 		if it.index == index {
@@ -131,9 +126,8 @@ func (L *LinkedList) remove(index int32) {
 	for it := oldNode.next; it != nil; it = it.next {
 		it.index--
 	}
-	// set the indexNode.next.prev == indexNode.prev
+
 	oldNode.next.prev = oldNode.prev
-	// set the indexNode.prev.next == indexNode.next
 	oldNode.prev.next = oldNode.next
 
 	L.length--
