@@ -155,3 +155,41 @@ func TestLinkedList_Insert(t *testing.T) {
 		})
 	}
 }
+
+func TestLinkedList_Remove(t *testing.T) {
+	node_0.next = node_1
+
+	type args struct {
+		index int32
+	}
+	tests := []struct {
+		name string
+		args args
+		list *LinkedList
+		want func(l *LinkedList) bool
+	}{
+		{
+			name: "remove single node from list with two nodes",
+			args: args{
+				index: 1,
+			},
+			list: &LinkedList{
+				length: 2,
+				head:   node_0,
+				tail:   node_1,
+			},
+			want: func(l *LinkedList) bool {
+				return l.head.next == nil
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.list.Remove(tt.args.index)
+
+			if !tt.want(tt.list) {
+				t.Errorf("Error removing node from list")
+			}
+		})
+	}
+}

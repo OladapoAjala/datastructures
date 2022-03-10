@@ -127,8 +127,11 @@ func (L *LinkedList) Remove(index int32) {
 		it.index--
 	}
 
-	oldNode.next.prev = oldNode.prev
-	oldNode.prev.next = oldNode.next
-
+	if oldNode.next != nil {
+		oldNode.next.prev = oldNode.prev
+	}
+	if oldNode.prev != nil {
+		oldNode.prev.next = oldNode.next
+	}
 	L.length--
 }
