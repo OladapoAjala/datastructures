@@ -4,21 +4,23 @@ import (
 	"testing"
 )
 
-func TestLinkedList_Append(t *testing.T) {
-	node_0 := &node{
+var (
+	node_0 = &node{
 		index: 0,
 		value: "Node 0",
 		prev:  nil,
 		next:  nil,
 	}
 
-	node_1 := &node{
+	node_1 = &node{
 		index: 1,
 		value: "Node 1",
 		prev:  node_0,
 		next:  nil,
 	}
+)
 
+func TestLinkedList_Append(t *testing.T) {
 	node_0.next = node_1
 
 	type args struct {
@@ -37,7 +39,7 @@ func TestLinkedList_Append(t *testing.T) {
 				value: "DSA sucks",
 			},
 			want: func(l *LinkedList) bool {
-				return l.head.value == "DSA sucks"
+				return l.head.value == "DSA sucks" && l.tail.value == "DSA sucks"
 
 			},
 		},
@@ -52,7 +54,7 @@ func TestLinkedList_Append(t *testing.T) {
 				value: "Node 2",
 			},
 			want: func(l *LinkedList) bool {
-				return l.tail.value == "Node 2"
+				return l.tail.value == "Node 2" && l.head.value == "Node 0"
 			},
 		},
 	}
@@ -68,6 +70,8 @@ func TestLinkedList_Append(t *testing.T) {
 }
 
 func TestLinkedList_Prepend(t *testing.T) {
+	node_0.next = node_1
+
 	type args struct {
 		value string
 	}
@@ -84,16 +88,69 @@ func TestLinkedList_Prepend(t *testing.T) {
 				value: "DSA Sucks",
 			},
 			want: func(l *LinkedList) bool {
-				return l.head.value == "DSA Sucks"
+				return l.head.value == "DSA Sucks" && l.tail.value == "DSA Sucks"
+			},
+		},
+		{
+			name: "prepend to a list with two nodes",
+			list: &LinkedList{
+				length: 2,
+				head:   node_0,
+				tail:   node_1,
+			},
+			args: args{
+				value: "Node 3",
+			},
+			want: func(l *LinkedList) bool {
+				return l.head.value == "Node 3" && l.tail.value == "Node 1"
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.list.Prepend(tt.args.value)
-
 			if !tt.want(tt.list) {
 				t.Errorf("prepend failed")
+			}
+		})
+	}
+}
+
+func TestLinkedList_Insert(t *testing.T) {
+	node_0.next = node_1
+
+	type args struct {
+		index int32
+		value string
+	}
+	tests := []struct {
+		name string
+		list *LinkedList
+		args args
+		want func(l *LinkedList) bool
+	}{
+		{
+			name: "insert into a list with two nodes",
+			list: &LinkedList{
+				length: 2,
+				head:   node_0,
+				tail:   node_1,
+			},
+			args: args{
+				index: 1,
+				value: "Node 3",
+			},
+			want: func(l *LinkedList) bool {
+				return l.head.next.value == "Node 3"
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.list.Insert(tt.args.index, tt.args.value)
+
+			if !tt.want(tt.list) {
+				t.Errorf("Error inserting into list")
 			}
 		})
 	}
