@@ -1,80 +1,84 @@
 package linkedlist
 
-type node struct {
-	index int32
-	value string
-	prev  *node
-	next  *node
-}
+import (
+	"fmt"
+
+	"github.com/OladapoAjala/datastructures/node"
+)
 
 type LinkedList struct {
-	length int
-	head   *node
-	tail   *node
+	Length int32
+	Head   *node.Node
+	Tail   *node.Node
 }
 
-func (L *LinkedList) Append(value string) {
-	if L.head == nil {
-		newTail := &node{
-			value: value,
-			index: 0,
-			prev:  nil,
-			next:  nil,
-		}
-
-		L.head, L.tail = newTail, newTail
-		L.length++
-
-		return
+func NewList(data ...interface{}) *LinkedList {
+	list := new(LinkedList)
+	for _, d := range data {
+		list.Add(d)
 	}
-
-	newTail := &node{
-		value: value,
-		index: L.tail.index + 1,
-		prev:  L.tail,
-		next:  nil,
-	}
-
-	L.tail.next = newTail
-	L.tail = newTail
-	L.length++
+	return list
 }
 
-func (L *LinkedList) Prepend(value string) {
-	if L.head == nil {
-		head := &node{
-			value: value,
-			index: 0,
-			prev:  nil,
-			next:  nil,
-		}
+func (l *LinkedList) Add(data interface{}) (bool, error) {
+	if l.Head == nil {
+		newNode := node.NewNode()
+		newNode.Data = data
 
-		L.head, L.tail = head, head
-		L.length++
+		l.Head, l.Tail = newNode, newNode
+		l.Length++
 
-		return
+		return true, nil
 	}
 
-	newHead := &node{
-		value: value,
-		index: 0,
-		prev:  nil,
-		next:  L.head,
+	if l.Contains(data) {
+		return false, fmt.Errorf("List already contains node %v", data)
 	}
 
-	// Shift the indices of the remaining elements
-	for it := L.head; it != nil; it = it.next {
-		it.index = it.index + 1
+	newNode := node.NewNode()
+	newNode.Data = data
+	newNode.Index = l.Length
+	newNode.Prev = l.Tail
+	newNode.Next = nil
+
+	l.Tail.Next = newNode
+	l.Tail = newNode
+	l.Length++
+
+	return true, nil
+}
+
+func (l *LinkedList) Prepend(data interface{}) (bool, error) {
+	if l.Head == nil {
+		newNode := node.NewNode()
+		newNode.Data = data
+
+		l.Head, l.Tail = newNode, newNode
+		l.Length++
+
+		return true, nil
 	}
 
-	L.head.prev = newHead
-	L.head = newHead
-	L.length++
+	if l.Contains(data) {
+		return false, fmt.Errorf("List already contains node %v", data)
+	}
+
+	newNode := node.NewNode()
+	newNode.Data = data
+	newNode.Index = l.Length
+	newNode.Next = l.Head
+	newNode.Prev = nil
+
+	l.ShiftRight(0)
+
+	l.Head.Prev = newNode
+	l.Head = newNode
+	l.Length++
 }
 
 func (L *LinkedList) Insert(index int32, value string) {
 	if L.head == nil {
-		newTail := &node{
+		newTail := &Node{
 			value: value,
 			index: 0,
 			prev:  nil,
@@ -87,8 +91,8 @@ func (L *LinkedList) Insert(index int32, value string) {
 		return
 	}
 
-	// Get the current node at the desired index.
-	var oldNode *node
+	// Get the current Node at the desired index.
+	var oldNode *Node
 	for it := L.head; it != nil; it = it.next {
 		if it.index == index {
 			oldNode = it
@@ -101,7 +105,7 @@ func (L *LinkedList) Insert(index int32, value string) {
 		it.index = it.index + 1
 	}
 
-	newNode := &node{
+	newNode := &Node{
 		value: value,
 		index: index,
 		prev:  oldNode.prev,
@@ -114,7 +118,7 @@ func (L *LinkedList) Insert(index int32, value string) {
 }
 
 func (L *LinkedList) Remove(index int32) {
-	var oldNode *node
+	var oldNode *Node
 	for it := L.head; it != nil; it = it.next {
 		if it.index == index {
 			oldNode = it
@@ -134,4 +138,31 @@ func (L *LinkedList) Remove(index int32) {
 		oldNode.prev.next = oldNode.next
 	}
 	L.length--
+}
+
+func (l *LinkedList) Contains(data interface{}) bool {
+
+}
+
+func (l *LinkedList) GetNode(index int32) (*node.Node, error) {
+	for it := l.Head; it != nil; it = it.Next {
+		if it.Index == index {
+			return it, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Node not found")
+}
+
+func (l *LinkedList) ShiftRight(index int32) error {
+	n, err := l.GetNode(index)
+	if err != nil {
+		return err
+	}
+
+	for it := n; it != nil; it = it.Next {
+		n.Index++
+	}
+
+	return nil
 }
