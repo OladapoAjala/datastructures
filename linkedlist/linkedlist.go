@@ -12,6 +12,22 @@ type LinkedList struct {
 	Tail   *node.Node
 }
 
+type ILinkedList interface {
+	Add(interface{}) error
+	AddFirst(interface{}) error
+	Clear() error
+	Contains(interface{}) (bool, int32)
+	GetNode(int32) (*node.Node, error)
+	Insert(int32, interface{}) error
+	Remove(int32) error
+	ShiftLeft(int32) error
+	ShiftRight(int32) error
+	Size() int32
+	// ToArray()
+}
+
+var _ ILinkedList = new(LinkedList)
+
 func NewList(data ...interface{}) *LinkedList {
 	list := new(LinkedList)
 	for _, d := range data {
@@ -20,7 +36,7 @@ func NewList(data ...interface{}) *LinkedList {
 	return list
 }
 
-func (l *LinkedList) Add(data interface{}) (bool, error) {
+func (l *LinkedList) Add(data interface{}) error {
 	if l.Head == nil {
 		newNode := node.NewNode()
 		newNode.Data = data
@@ -28,12 +44,12 @@ func (l *LinkedList) Add(data interface{}) (bool, error) {
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
 
-		return true, nil
+		return nil
 	}
 
-	if l.Contains(data) {
-		return false, fmt.Errorf("List already contains node %v", data)
-	}
+	// if l.Contains(data) {
+	// 	return false, fmt.Errorf("List already contains node %v", data)
+	// }
 
 	newNode := node.NewNode()
 	newNode.Data = data
@@ -45,10 +61,10 @@ func (l *LinkedList) Add(data interface{}) (bool, error) {
 	l.Tail = newNode
 	l.Length++
 
-	return true, nil
+	return nil
 }
 
-func (l *LinkedList) Prepend(data interface{}) (bool, error) {
+func (l *LinkedList) AddFirst(data interface{}) error {
 	if l.Head == nil {
 		newNode := node.NewNode()
 		newNode.Data = data
@@ -56,12 +72,12 @@ func (l *LinkedList) Prepend(data interface{}) (bool, error) {
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
 
-		return true, nil
+		return nil
 	}
 
-	if l.Contains(data) {
-		return false, fmt.Errorf("List already contains node %v", data)
-	}
+	// if l.Contains(data) {
+	// 	return false, fmt.Errorf("List already contains node %v", data)
+	// }
 
 	newNode := node.NewNode()
 	newNode.Data = data
@@ -74,74 +90,26 @@ func (l *LinkedList) Prepend(data interface{}) (bool, error) {
 	l.Head.Prev = newNode
 	l.Head = newNode
 	l.Length++
+
+	return nil
 }
 
-func (L *LinkedList) Insert(index int32, value string) {
-	if L.head == nil {
-		newTail := &Node{
-			value: value,
-			index: 0,
-			prev:  nil,
-			next:  nil,
-		}
-
-		L.head, L.tail = newTail, newTail
-		L.length++
-
-		return
+func (l *LinkedList) Clear() error {
+	for it := l.Head; it != nil; it = it.Next {
+		it.Data = nil
 	}
 
-	// Get the current Node at the desired index.
-	var oldNode *Node
-	for it := L.head; it != nil; it = it.next {
-		if it.index == index {
-			oldNode = it
-			break
+	return nil
+}
+
+func (l *LinkedList) Contains(data interface{}) (bool, int32) {
+	for it := l.Head; it != nil; it = it.Next {
+		if it.Data == data {
+			return true, it.Index
 		}
 	}
 
-	// Shift the indices of all the elements from the desired index.
-	for it := oldNode; it != nil; it = it.next {
-		it.index = it.index + 1
-	}
-
-	newNode := &Node{
-		value: value,
-		index: index,
-		prev:  oldNode.prev,
-		next:  oldNode,
-	}
-
-	oldNode.prev.next = newNode
-	oldNode.prev = newNode
-	L.length++
-}
-
-func (L *LinkedList) Remove(index int32) {
-	var oldNode *Node
-	for it := L.head; it != nil; it = it.next {
-		if it.index == index {
-			oldNode = it
-			break
-		}
-	}
-
-	// Re-arrange the indices
-	for it := oldNode.next; it != nil; it = it.next {
-		it.index--
-	}
-
-	if oldNode.next != nil {
-		oldNode.next.prev = oldNode.prev
-	}
-	if oldNode.prev != nil {
-		oldNode.prev.next = oldNode.next
-	}
-	L.length--
-}
-
-func (l *LinkedList) Contains(data interface{}) bool {
-
+	return false, -1
 }
 
 func (l *LinkedList) GetNode(index int32) (*node.Node, error) {
@@ -152,6 +120,77 @@ func (l *LinkedList) GetNode(index int32) (*node.Node, error) {
 	}
 
 	return nil, fmt.Errorf("Node not found")
+}
+
+func (l *LinkedList) Insert(index int32, data interface{}) error {
+	if l.Head == nil {
+		newNode := node.NewNode()
+		newNode.Data = data
+
+		l.Head, l.Tail = newNode, newNode
+		l.Length++
+
+		return nil
+	}
+
+	err := l.ShiftRight(index)
+	if err != nil {
+		return fmt.Errorf("Insertion failed: %v", err)
+	}
+
+	oldNode, err := l.GetNode(index)
+	if err != nil {
+		return fmt.Errorf("Insertion failed: %v", err)
+	}
+
+	newNode := node.NewNode()
+	newNode.Data = data
+	newNode.Index = index
+	newNode.Prev = oldNode.Prev
+	newNode.Next = oldNode
+
+	oldNode.Prev.Next = newNode
+	oldNode.Prev = newNode
+	l.Length++
+
+	return nil
+}
+
+// Update this!
+func (l *LinkedList) Remove(index int32) error {
+	oldNode, err := l.GetNode(index)
+	if err != nil {
+		return fmt.Errorf("error")
+	}
+
+	err = l.ShiftLeft(index)
+	if err != nil {
+		return fmt.Errorf("error")
+	}
+
+	if oldNode.Next != nil {
+		oldNode.Next.Prev = oldNode.Prev
+	}
+
+	if oldNode.Prev != nil {
+		oldNode.Prev.Next = oldNode.Next
+	}
+
+	l.Length--
+	return nil
+}
+
+func (l *LinkedList) ShiftLeft(index int32) error {
+	n, err := l.GetNode(index)
+	if err != nil {
+		return err
+	}
+
+	for it := n; it != nil; it = it.Next {
+		it.Index--
+	}
+
+	return nil
 }
 
 func (l *LinkedList) ShiftRight(index int32) error {
@@ -165,4 +204,8 @@ func (l *LinkedList) ShiftRight(index int32) error {
 	}
 
 	return nil
+}
+
+func (l *LinkedList) Size() int32 {
+	return l.Length
 }
