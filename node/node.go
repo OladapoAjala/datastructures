@@ -22,6 +22,10 @@ type Node struct {
 	Next  *Node
 }
 
+type INode interface {
+	NewNode()
+}
+
 func NewNode() *Node {
 	return new(Node)
 }

@@ -79,13 +79,13 @@ func (l *LinkedList) AddFirst(data interface{}) error {
 	// 	return false, fmt.Errorf("List already contains node %v", data)
 	// }
 
+	l.ShiftRight(0)
+
 	newNode := node.NewNode()
 	newNode.Data = data
-	newNode.Index = l.Length
+	newNode.Index = 0
 	newNode.Next = l.Head
 	newNode.Prev = nil
-
-	l.ShiftRight(0)
 
 	l.Head.Prev = newNode
 	l.Head = newNode
@@ -119,7 +119,7 @@ func (l *LinkedList) GetNode(index int32) (*node.Node, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Node not found")
+	return nil, fmt.Errorf("node not found")
 }
 
 func (l *LinkedList) Insert(index int32, data interface{}) error {
@@ -135,12 +135,12 @@ func (l *LinkedList) Insert(index int32, data interface{}) error {
 
 	err := l.ShiftRight(index)
 	if err != nil {
-		return fmt.Errorf("Insertion failed: %v", err)
+		return fmt.Errorf("insertion failed: %v", err)
 	}
 
 	oldNode, err := l.GetNode(index)
 	if err != nil {
-		return fmt.Errorf("Insertion failed: %v", err)
+		return fmt.Errorf("insertion failed: %v", err)
 	}
 
 	newNode := node.NewNode()
@@ -158,24 +158,38 @@ func (l *LinkedList) Insert(index int32, data interface{}) error {
 
 // Update this!
 func (l *LinkedList) Remove(index int32) error {
+	if l.Tail.Index == index {
+		l.Tail.Prev.Next = nil
+		l.Tail = l.Tail.Prev
+		l.Length--
+		return nil
+	}
+
+	if l.Head.Index == index {
+		l.Head = l.Head.Next
+		l.Head.Prev = nil
+
+		err := l.ShiftLeft(index)
+		if err != nil {
+			return fmt.Errorf("error removing node %v", err)
+		}
+
+		l.Length--
+		return nil
+	}
+
+	err := l.ShiftLeft(index)
+	if err != nil {
+		return fmt.Errorf("error removing node %v", err)
+	}
+
 	oldNode, err := l.GetNode(index)
 	if err != nil {
-		return fmt.Errorf("error")
+		return fmt.Errorf("error removing node %v", err)
 	}
 
-	err = l.ShiftLeft(index)
-	if err != nil {
-		return fmt.Errorf("error")
-	}
-
-	if oldNode.Next != nil {
-		oldNode.Next.Prev = oldNode.Prev
-	}
-
-	if oldNode.Prev != nil {
-		oldNode.Prev.Next = oldNode.Next
-	}
-
+	oldNode.Next.Prev = oldNode.Prev
+	oldNode.Prev.Next = oldNode.Next
 	l.Length--
 	return nil
 }
@@ -200,7 +214,7 @@ func (l *LinkedList) ShiftRight(index int32) error {
 	}
 
 	for it := n; it != nil; it = it.Next {
-		n.Index++
+		it.Index++
 	}
 
 	return nil
