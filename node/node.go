@@ -15,15 +15,11 @@ Possible implementations
 4. Map: Trees, Hash Map, Hash Table
 
 */
-type Node struct {
-	Data  interface{}
-	Index int32
-	Prev  *Node
-	Next  *Node
-}
 
-type INode interface {
-	NewNode()
+type Node struct {
+	Data any
+	Prev *Node
+	Next *Node
 }
 
 func NewNode() *Node {

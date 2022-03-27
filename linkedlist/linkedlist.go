@@ -13,22 +13,21 @@ type LinkedList struct {
 }
 
 type ILinkedList interface {
-	Add(interface{}) error
-	AddFirst(interface{}) error
+	Add(any) error
+	AddFirst(any) error
 	Clear() error
-	Contains(interface{}) (bool, int32)
 	GetNode(int32) (*node.Node, error)
-	Insert(int32, interface{}) error
-	Remove(int32) error
-	ShiftLeft(int32) error
-	ShiftRight(int32) error
+	Insert(int32, any) error
+	IsEmpty() bool
+	Remove(int32) (any, error)
+	// Reverse() *LinkedList
 	Size() int32
-	// ToArray()
+	// ToArray() []any
 }
 
 var _ ILinkedList = new(LinkedList)
 
-func NewList(data ...interface{}) *LinkedList {
+func NewList(data ...any) *LinkedList {
 	list := new(LinkedList)
 	for _, d := range data {
 		list.Add(d)
@@ -36,24 +35,17 @@ func NewList(data ...interface{}) *LinkedList {
 	return list
 }
 
-func (l *LinkedList) Add(data interface{}) error {
-	if l.Head == nil {
+func (l *LinkedList) Add(data any) error {
+	if l.IsEmpty() {
 		newNode := node.NewNode()
 		newNode.Data = data
-
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
-
 		return nil
 	}
 
-	// if l.Contains(data) {
-	// 	return false, fmt.Errorf("List already contains node %v", data)
-	// }
-
 	newNode := node.NewNode()
 	newNode.Data = data
-	newNode.Index = l.Length
 	newNode.Prev = l.Tail
 	newNode.Next = nil
 
@@ -64,26 +56,17 @@ func (l *LinkedList) Add(data interface{}) error {
 	return nil
 }
 
-func (l *LinkedList) AddFirst(data interface{}) error {
-	if l.Head == nil {
+func (l *LinkedList) AddFirst(data any) error {
+	if l.IsEmpty() {
 		newNode := node.NewNode()
 		newNode.Data = data
-
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
-
 		return nil
 	}
 
-	// if l.Contains(data) {
-	// 	return false, fmt.Errorf("List already contains node %v", data)
-	// }
-
-	l.ShiftRight(0)
-
 	newNode := node.NewNode()
 	newNode.Data = data
-	newNode.Index = 0
 	newNode.Next = l.Head
 	newNode.Prev = nil
 
@@ -102,40 +85,24 @@ func (l *LinkedList) Clear() error {
 	return nil
 }
 
-func (l *LinkedList) Contains(data interface{}) (bool, int32) {
-	for it := l.Head; it != nil; it = it.Next {
-		if it.Data == data {
-			return true, it.Index
-		}
-	}
-
-	return false, -1
-}
-
 func (l *LinkedList) GetNode(index int32) (*node.Node, error) {
 	for it := l.Head; it != nil; it = it.Next {
-		if it.Index == index {
+		if index == 0 {
 			return it, nil
 		}
+		index--
 	}
 
 	return nil, fmt.Errorf("node not found")
 }
 
-func (l *LinkedList) Insert(index int32, data interface{}) error {
-	if l.Head == nil {
+func (l *LinkedList) Insert(index int32, data any) error {
+	if l.IsEmpty() {
 		newNode := node.NewNode()
 		newNode.Data = data
-
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
-
 		return nil
-	}
-
-	err := l.ShiftRight(index)
-	if err != nil {
-		return fmt.Errorf("insertion failed: %v", err)
 	}
 
 	oldNode, err := l.GetNode(index)
@@ -145,7 +112,6 @@ func (l *LinkedList) Insert(index int32, data interface{}) error {
 
 	newNode := node.NewNode()
 	newNode.Data = data
-	newNode.Index = index
 	newNode.Prev = oldNode.Prev
 	newNode.Next = oldNode
 
@@ -156,68 +122,38 @@ func (l *LinkedList) Insert(index int32, data interface{}) error {
 	return nil
 }
 
-// Update this!
-func (l *LinkedList) Remove(index int32) error {
-	if l.Tail.Index == index {
-		l.Tail.Prev.Next = nil
-		l.Tail = l.Tail.Prev
-		l.Length--
-		return nil
-	}
+func (l *LinkedList) IsEmpty() bool {
+	return l.Length == 0
+}
 
-	if l.Head.Index == index {
-		l.Head = l.Head.Next
-		l.Head.Prev = nil
-
-		err := l.ShiftLeft(index)
-		if err != nil {
-			return fmt.Errorf("error removing node %v", err)
-		}
-
-		l.Length--
-		return nil
-	}
-
-	err := l.ShiftLeft(index)
-	if err != nil {
-		return fmt.Errorf("error removing node %v", err)
+func (l *LinkedList) Remove(index int32) (any, error) {
+	if l.IsEmpty() {
+		return nil, fmt.Errorf("cannot remove from empty list")
 	}
 
 	oldNode, err := l.GetNode(index)
 	if err != nil {
-		return fmt.Errorf("error removing node %v", err)
+		return nil, err
+	}
+
+	if l.Tail == oldNode {
+		l.Tail.Prev.Next = nil
+		l.Tail = l.Tail.Prev
+		l.Length--
+		return oldNode.Data, nil
+	}
+
+	if l.Head == oldNode {
+		l.Head = l.Head.Next
+		l.Head.Prev = nil
+		l.Length--
+		return oldNode.Data, nil
 	}
 
 	oldNode.Next.Prev = oldNode.Prev
 	oldNode.Prev.Next = oldNode.Next
 	l.Length--
-	return nil
-}
-
-func (l *LinkedList) ShiftLeft(index int32) error {
-	n, err := l.GetNode(index)
-	if err != nil {
-		return err
-	}
-
-	for it := n; it != nil; it = it.Next {
-		it.Index--
-	}
-
-	return nil
-}
-
-func (l *LinkedList) ShiftRight(index int32) error {
-	n, err := l.GetNode(index)
-	if err != nil {
-		return err
-	}
-
-	for it := n; it != nil; it = it.Next {
-		it.Index++
-	}
-
-	return nil
+	return oldNode.Data, nil
 }
 
 func (l *LinkedList) Size() int32 {

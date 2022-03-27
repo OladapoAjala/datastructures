@@ -4,17 +4,17 @@ import (
 	"testing"
 )
 
-func TestLinkedList_Append(t *testing.T) {
+func TestLinkedList_Add(t *testing.T) {
 	testList := NewList("Node 0", "Node 1", "Node 2")
 
 	type args struct {
-		data interface{}
+		data string
 	}
 	tests := []struct {
 		name string
 		list *LinkedList
 		args args
-		want func(l *LinkedList) bool
+		want func(*LinkedList) bool
 	}{
 		{
 			name: "append to an empty list",
@@ -28,7 +28,7 @@ func TestLinkedList_Append(t *testing.T) {
 			},
 		},
 		{
-			name: "append to a list with three Nodes",
+			name: "append to a list with three nodes",
 			list: testList,
 			args: args{
 				data: "Node 3",
@@ -59,7 +59,7 @@ func TestLinkedList_AddFirst(t *testing.T) {
 		name string
 		list *LinkedList
 		args args
-		want func(l *LinkedList) bool
+		want func(*LinkedList) bool
 	}{
 		{
 			name: "prepend to an empty list",
@@ -72,13 +72,13 @@ func TestLinkedList_AddFirst(t *testing.T) {
 			},
 		},
 		{
-			name: "prepend to a list with three Nodes",
+			name: "prepend to a list with three nodes",
 			list: testList,
 			args: args{
 				data: "Node 3",
 			},
 			want: func(l *LinkedList) bool {
-				return l.Head.Data == "Node 3" && l.Tail.Data == "Node 2" && l.Tail.Index == 3 && l.Head.Index == 0
+				return l.Head.Data == "Node 3" && l.Tail.Data == "Node 2"
 			},
 		},
 	}
@@ -92,142 +92,93 @@ func TestLinkedList_AddFirst(t *testing.T) {
 	}
 }
 
-// func TestLinkedList_Insert(t *testing.T) {
-// 	Node_0.next = Node_1
+func TestLinkedList_Insert(t *testing.T) {
+	testList := NewList("Node 0", "Node 1")
 
-// 	type args struct {
-// 		index int32
-// 		value string
-// 	}
-// 	tests := []struct {
-// 		name string
-// 		list *LinkedList
-// 		args args
-// 		want func(l *LinkedList) bool
-// 	}{
-// 		{
-// 			name: "insert into a list with two Nodes",
-// 			list: &LinkedList{
-// 				length: 2,
-// 				head:   Node_0,
-// 				tail:   Node_1,
-// 			},
-// 			args: args{
-// 				index: 1,
-// 				value: "Node 3",
-// 			},
-// 			want: func(l *LinkedList) bool {
-// 				return l.head.next.value == "Node 3"
-// 			},
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tt.list.Insert(tt.args.index, tt.args.value)
+	type args struct {
+		index int32
+		data  interface{}
+	}
+	tests := []struct {
+		name string
+		list *LinkedList
+		args args
+		want func(*LinkedList) bool
+	}{
+		{
+			name: "insert into a list with two nodes",
+			list: testList,
+			args: args{
+				index: 1,
+				data:  "Node 2",
+			},
+			want: func(l *LinkedList) bool {
+				return l.Head.Next.Data == "Node 2"
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.list.Insert(tt.args.index, tt.args.data)
 
-// 			if !tt.want(tt.list) {
-// 				t.Errorf("Error inserting into list")
-// 			}
-// 		})
-// 	}
-// }
+			if !tt.want(tt.list) {
+				t.Errorf("Error inserting into list")
+			}
+		})
+	}
+}
 
-// func TestLinkedList_Remove(t *testing.T) {
-// 	Node_0.next = Node_1
+func TestLinkedList_Remove(t *testing.T) {
+	type args struct {
+		index int32
+	}
+	tests := []struct {
+		name string
+		args args
+		list *LinkedList
+		want func(*LinkedList, any) bool
+	}{
+		{
+			name: "remove head",
+			args: args{
+				index: 0,
+			},
+			list: NewList("Node 0", "Node 1"),
+			want: func(l *LinkedList, got any) bool {
+				return l.Head.Next == nil && l.Head.Data == "Node 1" && got == "Node 0"
+			},
+		},
+		{
+			name: "remove tail",
+			args: args{
+				index: 2,
+			},
+			list: NewList("A", "B", "C"),
+			want: func(l *LinkedList, got any) bool {
+				return l.Tail.Data == "B" && got == "C"
+			},
+		},
+		{
+			name: "remove from list with three nodes",
+			args: args{
+				index: 1,
+			},
+			list: NewList("Node 0", "Node 1", "Node 2"),
+			want: func(l *LinkedList, got any) bool {
+				return l.Head.Next.Data == "Node 2" && l.Tail.Data == "Node 2" && got == "Node 1"
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.list.Remove(tt.args.index)
+			if err != nil {
+				t.Errorf("error removing node from list, %v", err)
+			}
 
-// 	type args struct {
-// 		index int32
-// 	}
-// 	tests := []struct {
-// 		name string
-// 		args args
-// 		list *LinkedList
-// 		want func(l *LinkedList) bool
-// 	}{
-// 		{
-// 			name: "remove single Node from list with two Nodes",
-// 			args: args{
-// 				index: 1,
-// 			},
-// 			list: &LinkedList{
-// 				length: 2,
-// 				head:   Node_0,
-// 				tail:   Node_1,
-// 			},
-// 			want: func(l *LinkedList) bool {
-// 				return l.head.next == nil
-// 			},
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tt.list.Remove(tt.args.index)
-
-// 			if !tt.want(tt.list) {
-// 				t.Errorf("Error removing Node from list")
-// 			}
-// 		})
-// 	}
-// }
-
-// func TestLinkedList_ShiftLeft(t *testing.T) {
-// 	type args struct {
-// 		index int32
-// 	}
-
-// 	tests := []struct {
-// 		name string
-// 		args args
-// 		list *LinkedList
-// 		want func(l *LinkedList) bool
-// 	}{
-// 		{
-// 			name: "simple node shift",
-// 			args: args{
-// 				index: 1,
-// 			},
-// 			list: NewList(),
-// 		},
-// 	}
-
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tt.list.ShiftLeft(tt.args.index)
-
-// 			if !tt.want(tt.list) {
-// 				t.Errorf("error shifting node to the left")
-// 			}
-// 		})
-// 	}
-// }
-
-// func TestLinkedList_ShiftRight(t *testing.T) {
-// 	type fields struct {
-// 		Length int32
-// 		Head   *node.Node
-// 		Tail   *node.Node
-// 	}
-// 	type args struct {
-// 		index int32
-// 	}
-// 	tests := []struct {
-// 		name   string
-// 		fields fields
-// 		args   args
-// 		want   func(l *LinkedList)
-// 	}{
-// 		// TODO: Add test cases.
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			l := &LinkedList{
-// 				Length: tt.fields.Length,
-// 				Head:   tt.fields.Head,
-// 				Tail:   tt.fields.Tail,
-// 			}
-// 			if err := l.ShiftRight(tt.args.index); (err != nil) != tt.wantErr {
-// 				t.Errorf("LinkedList.ShiftRight() error = %v, wantErr %v", err, tt.wantErr)
-// 			}
-// 		})
-// 	}
-// }
+			if !tt.want(tt.list, got) {
+				t.Errorf("Error removing Node from list")
+			}
+		})
+	}
+}
