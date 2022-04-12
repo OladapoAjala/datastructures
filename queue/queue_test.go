@@ -6,21 +6,21 @@ import (
 
 func TestQueue_Enqueue(t *testing.T) {
 	type args struct {
-		data any
+		data string
 	}
 	tests := []struct {
 		name  string
-		queue *Queue
+		queue *Queue[string]
 		args  args
-		want  func(*Queue) bool
+		want  func(*Queue[string]) bool
 	}{
 		{
 			name:  "enqueue element",
-			queue: NewQueue(),
+			queue: NewQueue[string](),
 			args: args{
 				data: "A",
 			},
-			want: func(q *Queue) bool {
+			want: func(q *Queue[string]) bool {
 				return q.Head.Data == "A" && q.Length == 1
 			},
 		},
@@ -41,20 +41,20 @@ func TestQueue_Enqueue(t *testing.T) {
 }
 
 func TestQueue_Dequeue(t *testing.T) {
-	testQueue := NewQueue()
+	testQueue := NewQueue[string]()
 	testQueue.Enqueue("A")
 	testQueue.Enqueue("B")
 	testQueue.Enqueue("C")
 
 	tests := []struct {
 		name  string
-		queue *Queue
-		want  func(*Queue, any) bool
+		queue *Queue[string]
+		want  func(*Queue[string], any) bool
 	}{
 		{
 			name:  "dequeue element",
 			queue: testQueue,
-			want: func(q *Queue, got any) bool {
+			want: func(q *Queue[string], got any) bool {
 				return q.Head.Data == "B" && got == "A" && q.Length == 2
 			},
 		},

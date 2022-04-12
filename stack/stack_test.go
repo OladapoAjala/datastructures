@@ -5,14 +5,14 @@ import (
 )
 
 func TestStack_Peek(t *testing.T) {
-	testStack := NewStack()
+	testStack := NewStack[rune]()
 	testStack.Push('a')
 	testStack.Push('b')
 	testStack.Push('c')
 
 	tests := []struct {
 		name  string
-		stack *Stack
+		stack *Stack[rune]
 		want  func(any) bool
 	}{
 		{
@@ -40,14 +40,14 @@ func TestStack_Peek(t *testing.T) {
 }
 
 func TestStack_Pop(t *testing.T) {
-	testStack := NewStack()
+	testStack := NewStack[rune]()
 	testStack.Push('a')
 	testStack.Push('b')
 	testStack.Push('c')
 
 	tests := []struct {
 		name  string
-		Stack *Stack
+		Stack *Stack[rune]
 		want  func(any) bool
 	}{
 		{
@@ -74,19 +74,19 @@ func TestStack_Pop(t *testing.T) {
 }
 
 func TestStack_Push(t *testing.T) {
-	testStack := NewStack()
+	testStack := NewStack[rune]()
 	testStack.Push('a')
 	testStack.Push('b')
 	testStack.Push('c')
 
 	type args struct {
-		data any
+		data rune
 	}
 	tests := []struct {
 		name  string
-		stack *Stack
+		stack *Stack[rune]
 		args  args
-		want  func(*Stack) bool
+		want  func(*Stack[rune]) bool
 	}{
 		{
 			name:  "push to stack",
@@ -94,7 +94,7 @@ func TestStack_Push(t *testing.T) {
 			args: args{
 				data: 'd',
 			},
-			want: func(s *Stack) bool {
+			want: func(s *Stack[rune]) bool {
 				got, _ := s.Peek()
 				return got == 'd' && s.Length == 4
 			},

@@ -6,45 +6,45 @@ import (
 	"github.com/OladapoAjala/datastructures/node"
 )
 
-type LinkedList struct {
+type LinkedList[T any] struct {
 	Length int32
-	Head   *node.Node
-	Tail   *node.Node
+	Head   *node.Node[T]
+	Tail   *node.Node[T]
 }
 
-type ILinkedList interface {
-	Add(any) error
-	AddFirst(any) error
+type ILinkedList[T any] interface {
+	Add(T) error
+	AddFirst(T) error
 	Clear() error
-	GetNode(int32) (*node.Node, error)
-	Insert(int32, any) error
+	GetNode(int32) (*node.Node[T], error)
+	Insert(int32, T) error
 	IsEmpty() bool
-	Remove(int32) (any, error)
-	// Reverse() *LinkedList
+	Remove(int32) (T, error)
+	// Reverse() *LinkedList[T]
 	Size() int32
-	// ToArray() []any
+	// ToArray() []T
 }
 
-var _ ILinkedList = new(LinkedList)
+var _ ILinkedList[string] = new(LinkedList[string])
 
-func NewList(data ...any) *LinkedList {
-	list := new(LinkedList)
+func NewList[T comparable](data ...T) *LinkedList[T] {
+	list := new(LinkedList[T])
 	for _, d := range data {
 		list.Add(d)
 	}
 	return list
 }
 
-func (l *LinkedList) Add(data any) error {
+func (l *LinkedList[T]) Add(data T) error {
 	if l.IsEmpty() {
-		newNode := node.NewNode()
+		newNode := node.NewNode[T]()
 		newNode.Data = data
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
 		return nil
 	}
 
-	newNode := node.NewNode()
+	newNode := node.NewNode[T]()
 	newNode.Data = data
 	newNode.Prev = l.Tail
 	newNode.Next = nil
@@ -56,16 +56,16 @@ func (l *LinkedList) Add(data any) error {
 	return nil
 }
 
-func (l *LinkedList) AddFirst(data any) error {
+func (l *LinkedList[T]) AddFirst(data T) error {
 	if l.IsEmpty() {
-		newNode := node.NewNode()
+		newNode := node.NewNode[T]()
 		newNode.Data = data
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
 		return nil
 	}
 
-	newNode := node.NewNode()
+	newNode := node.NewNode[T]()
 	newNode.Data = data
 	newNode.Next = l.Head
 	newNode.Prev = nil
@@ -77,15 +77,16 @@ func (l *LinkedList) AddFirst(data any) error {
 	return nil
 }
 
-func (l *LinkedList) Clear() error {
+func (l *LinkedList[T]) Clear() error {
+	var zero T
 	for it := l.Head; it != nil; it = it.Next {
-		it.Data = nil
+		it.Data = zero
 	}
 
 	return nil
 }
 
-func (l *LinkedList) GetNode(index int32) (*node.Node, error) {
+func (l *LinkedList[T]) GetNode(index int32) (*node.Node[T], error) {
 	for it := l.Head; it != nil; it = it.Next {
 		if index == 0 {
 			return it, nil
@@ -96,9 +97,9 @@ func (l *LinkedList) GetNode(index int32) (*node.Node, error) {
 	return nil, fmt.Errorf("node not found")
 }
 
-func (l *LinkedList) Insert(index int32, data any) error {
+func (l *LinkedList[T]) Insert(index int32, data T) error {
 	if l.IsEmpty() {
-		newNode := node.NewNode()
+		newNode := node.NewNode[T]()
 		newNode.Data = data
 		l.Head, l.Tail = newNode, newNode
 		l.Length++
@@ -110,7 +111,7 @@ func (l *LinkedList) Insert(index int32, data any) error {
 		return fmt.Errorf("insertion failed: %v", err)
 	}
 
-	newNode := node.NewNode()
+	newNode := node.NewNode[T]()
 	newNode.Data = data
 	newNode.Prev = oldNode.Prev
 	newNode.Next = oldNode
@@ -122,18 +123,19 @@ func (l *LinkedList) Insert(index int32, data any) error {
 	return nil
 }
 
-func (l *LinkedList) IsEmpty() bool {
+func (l *LinkedList[T]) IsEmpty() bool {
 	return l.Length == 0
 }
 
-func (l *LinkedList) Remove(index int32) (any, error) {
+func (l *LinkedList[T]) Remove(index int32) (T, error) {
+	var zero T
 	if l.IsEmpty() {
-		return nil, fmt.Errorf("cannot remove from empty list")
+		return zero, fmt.Errorf("cannot remove from empty list")
 	}
 
 	oldNode, err := l.GetNode(index)
 	if err != nil {
-		return nil, err
+		return zero, err
 	}
 
 	if l.Tail == oldNode {
@@ -156,6 +158,6 @@ func (l *LinkedList) Remove(index int32) (any, error) {
 	return oldNode.Data, nil
 }
 
-func (l *LinkedList) Size() int32 {
+func (l *LinkedList[T]) Size() int32 {
 	return l.Length
 }

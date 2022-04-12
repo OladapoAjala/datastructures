@@ -12,17 +12,17 @@ func TestLinkedList_Add(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		list *LinkedList
+		list *LinkedList[string]
 		args args
-		want func(*LinkedList) bool
+		want func(*LinkedList[string]) bool
 	}{
 		{
 			name: "append to an empty list",
-			list: new(LinkedList),
+			list: new(LinkedList[string]),
 			args: args{
 				data: "DSA sucks",
 			},
-			want: func(l *LinkedList) bool {
+			want: func(l *LinkedList[string]) bool {
 				return l.Head.Data == "DSA sucks" && l.Tail.Data == "DSA sucks"
 
 			},
@@ -33,7 +33,7 @@ func TestLinkedList_Add(t *testing.T) {
 			args: args{
 				data: "Node 3",
 			},
-			want: func(l *LinkedList) bool {
+			want: func(l *LinkedList[string]) bool {
 				return l.Tail.Data == "Node 3" && l.Head.Data == "Node 0"
 			},
 		},
@@ -53,21 +53,21 @@ func TestLinkedList_AddFirst(t *testing.T) {
 	testList := NewList("Node 0", "Node 1", "Node 2")
 
 	type args struct {
-		data interface{}
+		data string
 	}
 	tests := []struct {
 		name string
-		list *LinkedList
+		list *LinkedList[string]
 		args args
-		want func(*LinkedList) bool
+		want func(*LinkedList[string]) bool
 	}{
 		{
 			name: "prepend to an empty list",
-			list: new(LinkedList),
+			list: new(LinkedList[string]),
 			args: args{
 				data: "DSA Sucks",
 			},
-			want: func(l *LinkedList) bool {
+			want: func(l *LinkedList[string]) bool {
 				return l.Head.Data == "DSA Sucks" && l.Tail.Data == "DSA Sucks"
 			},
 		},
@@ -77,7 +77,7 @@ func TestLinkedList_AddFirst(t *testing.T) {
 			args: args{
 				data: "Node 3",
 			},
-			want: func(l *LinkedList) bool {
+			want: func(l *LinkedList[string]) bool {
 				return l.Head.Data == "Node 3" && l.Tail.Data == "Node 2"
 			},
 		},
@@ -97,13 +97,13 @@ func TestLinkedList_Insert(t *testing.T) {
 
 	type args struct {
 		index int32
-		data  interface{}
+		data  string
 	}
 	tests := []struct {
 		name string
-		list *LinkedList
+		list *LinkedList[string]
 		args args
-		want func(*LinkedList) bool
+		want func(*LinkedList[string]) bool
 	}{
 		{
 			name: "insert into a list with two nodes",
@@ -112,7 +112,7 @@ func TestLinkedList_Insert(t *testing.T) {
 				index: 1,
 				data:  "Node 2",
 			},
-			want: func(l *LinkedList) bool {
+			want: func(l *LinkedList[string]) bool {
 				return l.Head.Next.Data == "Node 2"
 			},
 		},
@@ -135,8 +135,8 @@ func TestLinkedList_Remove(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		list *LinkedList
-		want func(*LinkedList, any) bool
+		list *LinkedList[string]
+		want func(*LinkedList[string], any) bool
 	}{
 		{
 			name: "remove head",
@@ -144,7 +144,7 @@ func TestLinkedList_Remove(t *testing.T) {
 				index: 0,
 			},
 			list: NewList("Node 0", "Node 1"),
-			want: func(l *LinkedList, got any) bool {
+			want: func(l *LinkedList[string], got any) bool {
 				return l.Head.Next == nil && l.Head.Data == "Node 1" && got == "Node 0"
 			},
 		},
@@ -154,7 +154,7 @@ func TestLinkedList_Remove(t *testing.T) {
 				index: 2,
 			},
 			list: NewList("A", "B", "C"),
-			want: func(l *LinkedList, got any) bool {
+			want: func(l *LinkedList[string], got any) bool {
 				return l.Tail.Data == "B" && got == "C"
 			},
 		},
@@ -164,7 +164,7 @@ func TestLinkedList_Remove(t *testing.T) {
 				index: 1,
 			},
 			list: NewList("Node 0", "Node 1", "Node 2"),
-			want: func(l *LinkedList, got any) bool {
+			want: func(l *LinkedList[string], got any) bool {
 				return l.Head.Next.Data == "Node 2" && l.Tail.Data == "Node 2" && got == "Node 1"
 			},
 		},

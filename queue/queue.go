@@ -6,24 +6,24 @@ import (
 	"github.com/OladapoAjala/datastructures/linkedlist"
 )
 
-type Queue struct {
-	*linkedlist.LinkedList
+type Queue[T any] struct {
+	*linkedlist.LinkedList[T]
 }
 
-type IQueue interface {
-	Dequeue() (any, error)
-	Enqueue(data any) error
+type IQueue[T any] interface {
+	Dequeue() (T, error)
+	Enqueue(T) error
 }
 
-var _ IQueue = new(Queue)
+var _ IQueue[int] = new(Queue[int])
 
-func NewQueue() *Queue {
-	return &Queue{
-		new(linkedlist.LinkedList),
+func NewQueue[T any]() *Queue[T] {
+	return &Queue[T]{
+		new(linkedlist.LinkedList[T]),
 	}
 }
 
-func (q *Queue) Enqueue(data any) error {
+func (q *Queue[T]) Enqueue(data T) error {
 	err := q.Add(data)
 	if err != nil {
 		return fmt.Errorf("error enqueuing data %v, error: %v", data, err)
@@ -31,10 +31,11 @@ func (q *Queue) Enqueue(data any) error {
 	return nil
 }
 
-func (q *Queue) Dequeue() (any, error) {
+func (q *Queue[T]) Dequeue() (T, error) {
+	var zero T
 	data, err := q.Remove(0)
 	if err != nil {
-		return nil, fmt.Errorf("unable to remove first element, %v", err)
+		return zero, fmt.Errorf("unable to remove first element, %v", err)
 	}
 
 	return data, nil
