@@ -9,24 +9,26 @@ import (
 type Heap[T constraints.Ordered] struct {
 	Tree []T
 	Size int32
-	Map  map[T][]int32 // you'd have to make sure the indices are sorted.
+	Map  map[T][]int32
 }
 
 type IHeap[T constraints.Ordered] interface {
-	Add(T) error
-	Insert(T) error
+	Add(...T) error
 	IsEmpty() bool
 	Poll() (T, error)
 	Remove(T) error
+	less(int32, int32) bool
+	mapAdd(T) error
+	mapSet(T, int32) error
+	mapSwap(int32, int32) error
+	removeMapIndex(T, int32)
 	sink(int32) error
+	// sortMap(T)
 	swap(int32, int32) error
 	swim(int32) error
-	mapAdd(T, int32) error
-	mapSet(T, int32) error
-	less(int32, int32) bool
 }
 
-// var _ IHeap[int] = new(Heap[int])
+var _ IHeap[int] = new(Heap[int])
 
 func NewHeap[T constraints.Ordered]() *Heap[T] {
 	return &Heap[T]{
@@ -44,70 +46,95 @@ func (h *Heap[T]) Add(data ...T) error {
 	var err error
 	for _, d := range data {
 		h.Tree = append(h.Tree, d)
-
+		err = h.mapAdd(d)
+		if err != nil {
+			return err
+		}
+		h.Size += 1
 		err = h.swim(h.Size - 1)
 		if err != nil {
 			return err
 		}
-
-		err = h.mapAdd(d, h.Size)
-		if err != nil {
-			return err
-		}
-
-		h.Size += 1
 	}
 
 	return nil
 }
 
-func (h *Heap[T]) mapAdd(data T, index int32) error {
+func (h *Heap[T]) IsEmpty() bool {
+	return h.Size == 0
+}
+
+func (h *Heap[T]) Poll() (T, error) {
+	var zero T
+	data := h.Tree[0]
+	err := h.Remove(data)
+	if err != nil {
+		return zero, err
+	}
+	return data, nil
+}
+
+func (h *Heap[T]) Remove(data T) error {
 	var zero T
 	if data == zero {
 		return fmt.Errorf("cannot use null value as map key")
 	}
 
-	h.Map[data] = append(h.Map[data], index)
-	// sort map indices in ascending order.
+	index := h.Map[data][0]
+	h.swap(index, h.Size-1)
+	h.Tree = h.Tree[:h.Size-1]
+	h.removeMapIndex(data, h.Size-1)
+
+	parentIndex := (index - 1) / 2
+	if h.less(index, parentIndex) {
+		err := h.swim(index)
+		if err != nil {
+			return err
+		}
+	}
+	err := h.sink(index)
+	if err != nil {
+		return err
+	}
+	h.Size--
+	return nil
+}
+
+func (h *Heap[T]) less(i, j int32) bool {
+	return h.Tree[i] < h.Tree[j]
+}
+
+func (h *Heap[T]) mapAdd(data T) error {
+	var zero T
+	if data == zero {
+		return fmt.Errorf("cannot use null value as map key")
+	}
+
+	h.Map[data] = append(h.Map[data], h.Size)
+	// h.sortMap(data)
 	return nil
 }
 
 func (h *Heap[T]) mapSet(data T, index int32) error {
 	if _, ok := h.Map[data]; !ok {
-		return fmt.Errorf("cannot update map data (%v) absent in tree %v", data, h.Tree)
+		h.Map[data] = make([]int32, 0)
 	}
 
 	for _, i := range h.Map[data] {
 		if i == index {
-			return nil
+			return fmt.Errorf("data (%v) already at index (%d)", data, index)
 		}
 	}
 
 	h.Map[data] = append(h.Map[data], index)
-	// sort map indices in ascending order.
+	// h.sortMap(data)
 	return nil
 }
 
-func (h *Heap[T]) swim(i int32) error {
-	parenIndex := (i - 1) / 2
-
-	var err error
-	// maybe i or parenIndex
-	for parenIndex > 0 && h.less(parenIndex, i) {
-		err = h.swap(parenIndex, i)
-		if err != nil {
-			return err
-		}
-
-		i = parenIndex
-		parenIndex = (i - 1) / 2
-	}
-
-	return err
-}
-
-func (h *Heap[T]) swap(i, j int32) error {
-	h.Tree[i], h.Tree[j] = h.Tree[j], h.Tree[i]
+func (h *Heap[T]) mapSwap(i, j int32) error {
+	// TODO: [1,2,2] what happens when i,j = 1,2
+	h.removeMapIndex(h.Tree[i], i)
+	h.removeMapIndex(h.Tree[j], j)
 
 	err := h.mapSet(h.Tree[i], j)
 	if err != nil {
@@ -122,6 +149,88 @@ func (h *Heap[T]) swap(i, j int32) error {
 	return nil
 }
 
-func (h *Heap[T]) less(i, j int32) bool {
-	return h.Tree[i] < h.Tree[j]
+func (h *Heap[T]) removeMapIndex(key T, i int32) {
+	oldIndices := h.Map[key]
+	newIndices := make([]int32, 0)
+
+	for _, e := range oldIndices {
+		if e == i {
+			continue
+		}
+		newIndices = append(newIndices, e)
+	}
+	h.Map[key] = newIndices
+
+	if len(h.Map[key]) == 0 {
+		delete(h.Map, key)
+	}
+}
+
+func (h *Heap[T]) sink(i int32) error {
+	if i >= h.Size {
+		return fmt.Errorf("index out of range")
+	}
+
+	leftChildIndex := 2*i + 1
+	rightChildIndex := 2*i + 2
+
+	for leftChildIndex < h.Size && rightChildIndex < h.Size {
+		switch {
+		case h.less(leftChildIndex, i):
+			err := h.swap(leftChildIndex, i)
+			if err != nil {
+				return err
+			}
+			leftChildIndex = 2*leftChildIndex + 1
+
+		case h.less(rightChildIndex, i):
+			err := h.swap(rightChildIndex, i)
+			if err != nil {
+				return err
+			}
+			rightChildIndex = 2*rightChildIndex + 1
+
+		default:
+			return nil
+		}
+	}
+
+	return nil
+}
+
+/*
+-> I'm guessing the indices are sorted already
+func (h *Heap[T]) sortMap(data T) {
+	value := h.Map[data]
+	sort.Slice(value, func(i, j int) bool {
+		return value[i] < value[j]
+	})
+	h.Map[data] = value
+}
+*/
+func (h *Heap[T]) swap(i, j int32) error {
+	err := h.mapSwap(i, j)
+	if err != nil {
+		return err
+	}
+
+	h.Tree[i], h.Tree[j] = h.Tree[j], h.Tree[i]
+	return nil
+}
+
+func (h *Heap[T]) swim(i int32) error {
+	parentIndex := (i - 1) / 2
+
+	var err error
+	for parentIndex >= 0 && h.less(i, parentIndex) {
+		err = h.swap(i, parentIndex)
+		if err != nil {
+			return err
+		}
+
+		i = parentIndex
+		parentIndex = (i - 1) / 2
+	}
+
+	return err
 }
