@@ -51,12 +51,17 @@ func (h *Heap[T]) Add(data ...T) error {
 			return err
 		}
 		h.Size += 1
-		err = h.swim(h.Size - 1)
-		if err != nil {
-			return err
-		}
+		// DEPRECATE this in favour of the heapify method. O(n)
+		// err = h.swim(h.Size - 1)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
+	var i int32
+	for i = (h.Size / 2) - 1; i >= 0; i-- {
+		h.sink(i)
+	}
 	return nil
 }
 
@@ -84,19 +89,18 @@ func (h *Heap[T]) Remove(data T) error {
 	h.swap(index, h.Size-1)
 	h.Tree = h.Tree[:h.Size-1]
 	h.removeMapIndex(data, h.Size-1)
-
-	parentIndex := (index - 1) / 2
-	if h.less(index, parentIndex) {
-		err := h.swim(index)
-		if err != nil {
-			return err
-		}
-	}
-	err := h.sink(index)
-	if err != nil {
-		return err
-	}
 	h.Size--
+
+	if index == h.Size-1 {
+		return nil
+	}
+
+	currElem := h.Tree[index]
+	h.sink(index)
+
+	if h.Tree[index] == currElem {
+		h.swim(index)
+	}
 	return nil
 }
 
@@ -166,33 +170,28 @@ func (h *Heap[T]) removeMapIndex(key T, i int32) {
 	}
 }
 
-func (h *Heap[T]) sink(i int32) error {
-	if i >= h.Size {
+func (h *Heap[T]) sink(k int32) error {
+	if k >= h.Size {
 		return fmt.Errorf("index out of range")
 	}
 
-	leftChildIndex := 2*i + 1
-	rightChildIndex := 2*i + 2
+	for {
+		leftNode := 2*k + 1
+		rightNode := 2*k + 2
+		smallest := leftNode
 
-	for leftChildIndex < h.Size && rightChildIndex < h.Size {
-		switch {
-		case h.less(leftChildIndex, i):
-			err := h.swap(leftChildIndex, i)
-			if err != nil {
-				return err
-			}
-			leftChildIndex = 2*leftChildIndex + 1
-
-		case h.less(rightChildIndex, i):
-			err := h.swap(rightChildIndex, i)
-			if err != nil {
-				return err
-			}
-			rightChildIndex = 2*rightChildIndex + 1
-
-		default:
-			return nil
+		if rightNode < h.Size && h.less(rightNode, leftNode) {
+			smallest = rightNode
 		}
+		if leftNode >= h.Size || h.less(k, smallest) {
+			break
+		}
+
+		err := h.swap(smallest, k)
+		if err != nil {
+			return err
+		}
+		k = smallest
 	}
 
 	return nil
