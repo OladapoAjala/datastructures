@@ -1,8 +1,11 @@
 package priorityqueue
 
-import "github.com/OladapoAjala/datastructures/heap"
+import (
+	"github.com/OladapoAjala/datastructures/heap"
+	"golang.org/x/exp/constraints"
+)
 
-type PQueue[T comparable] struct {
+type PQueue[T constraints.Ordered] struct {
 	*heap.Heap[T]
 }
 
@@ -11,20 +14,16 @@ type IPQueue[T comparable] interface {
 	Enqueue(T) error
 }
 
-func NewPQueue[T comparable](size int32) *PQueue[T] {
+func NewPQueue[T constraints.Ordered]() *PQueue[T] {
 	return &PQueue[T]{
-		heap.NewHeap[T](size),
+		heap.NewHeap[T](),
 	}
 }
 
-func NewPQueueWithElements[T comparable](elems ...T) *PQueue[T] {
-	pq := NewPQueue[T](int32(len(elems)))
+func (pq *PQueue[T]) Dequeue() (T, error) {
+	return pq.Poll()
+}
 
-	for _, e := range elems {
-		pq.Add(e)
-	}
-
-	// you want to sink all the elements to ensure they satisfy the heap invariant.
-
-	return pq
+func (pq *PQueue[T]) Enqueue(data ...T) error {
+	return pq.Add(data...)
 }
