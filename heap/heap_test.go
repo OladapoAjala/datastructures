@@ -66,9 +66,41 @@ func Test_Add(t *testing.T) {
 	}
 }
 
+func Test_Poll(t *testing.T) {
+	is := assert.New(t)
+	h := NewHeap[string]()
+	h.Add("D", "A", "C")
+
+	data, err := h.Poll()
+	is.Nil(err)
+	is.Equal(data, "A")
+	is.Equal(h.Tree, []string{"C", "D"})
+	is.Equal(h.Map, map[string][]int32{"C": {0}, "D": {1}})
+
+	data, err = h.Poll()
+	is.Nil(err)
+	is.Equal(data, "C")
+	is.Equal(h.Tree, []string{"D"})
+	is.Equal(h.Map, map[string][]int32{"D": {0}})
+
+	data, err = h.Poll()
+	is.Nil(err)
+	is.Equal(data, "D")
+	is.Equal(h.Tree, []string{})
+	is.Equal(h.Map, map[string][]int32{})
+
+	data, err = h.Poll()
+	is.Empty(data)
+	is.Error(err, "empty heap")
+}
+
 func Test_Remove(t *testing.T) {
+	is := assert.New(t)
 	h := NewHeap[int]()
 	h.Add(7, 2, 3, 4, 1, 3, 2)
+
+	h1 := NewHeap[int]()
+	h1.Add(1, 7, 3, 8, 9, 5, 4)
 
 	type args struct {
 		data int
@@ -78,23 +110,50 @@ func Test_Remove(t *testing.T) {
 		name string
 		args args
 		heap *Heap[int]
-		// want func(*Heap[int], error)
+		want func(*Heap[int], error)
 	}{
 		{
-			name: "remove element & f*ing sink",
+			name: "remove data from heap",
 			args: args{
 				data: 7,
 			},
 			heap: h,
+			want: func(h *Heap[int], err error) {
+				is.Nil(err)
+				is.Equal(h.Tree, []int{1, 2, 2, 4, 3, 3})
+				is.Equal(h.Map, map[int][]int32{1: {0}, 2: {2, 1}, 3: {5, 4}, 4: {3}})
+			},
+		},
+		{
+			name: "remove invalid data from heap",
+			args: args{
+				data: 10,
+			},
+			heap: h,
+			want: func(h *Heap[int], err error) {
+				is.Error(err, "value is absent in heap")
+				is.Equal(h.Tree, []int{1, 2, 2, 4, 3, 3})
+				is.Equal(h.Map, map[int][]int32{1: {0}, 2: {2, 1}, 3: {5, 4}, 4: {3}})
+			},
+		},
+		{
+			name: "test swim from remove",
+			args: args{
+				data: 8,
+			},
+			heap: h1,
+			want: func(h *Heap[int], err error) {
+				is.Nil(err)
+				is.Equal(h.Tree, []int{1, 4, 3, 7, 9, 5})
+				is.Equal(h.Map, map[int][]int32{1: {0}, 4: {1}, 3: {2}, 7: {3}, 9: {4}, 5: {5}})
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.heap.Remove(tt.args.data)
-			if err != nil {
-				t.Error("unexpected error")
-			}
+			tt.want(tt.heap, err)
 		})
 	}
 

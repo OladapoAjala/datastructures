@@ -2,6 +2,7 @@ package heap
 
 import (
 	"fmt"
+	"math"
 
 	"golang.org/x/exp/constraints"
 )
@@ -51,7 +52,7 @@ func (h *Heap[T]) Add(data ...T) error {
 			return err
 		}
 		h.Size += 1
-		// DEPRECATE this in favour of the heapify method. O(n)
+		// DEPRECATE this in favour of the heapify method O(n).
 		// err = h.swim(h.Size - 1)
 		// if err != nil {
 		// 	return err
@@ -71,6 +72,10 @@ func (h *Heap[T]) IsEmpty() bool {
 
 func (h *Heap[T]) Poll() (T, error) {
 	var zero T
+	if h.IsEmpty() {
+		return zero, fmt.Errorf("empty heap")
+	}
+
 	data := h.Tree[0]
 	err := h.Remove(data)
 	if err != nil {
@@ -85,13 +90,17 @@ func (h *Heap[T]) Remove(data T) error {
 		return fmt.Errorf("cannot use null value as map key")
 	}
 
+	if _, ok := h.Map[data]; !ok {
+		return fmt.Errorf("value is absent in heap")
+	}
+
 	index := h.Map[data][0]
 	h.swap(index, h.Size-1)
 	h.Tree = h.Tree[:h.Size-1]
 	h.removeMapIndex(data, h.Size-1)
 	h.Size--
 
-	if index == h.Size-1 {
+	if index == int32(math.Max(0, float64(h.Size-1))) {
 		return nil
 	}
 
