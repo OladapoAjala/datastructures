@@ -29,8 +29,9 @@ func NewUnionFind[T constraints.Ordered](elems ...T) (*UnionFind[T], error) {
 	}
 
 	unionFind := &UnionFind[T]{
-		hash:    make(map[T]int32),
-		indices: make([]int32, 0),
+		hash:     make(map[T]int32),
+		indices:  make([]int32, 0),
+		compSize: make([]int32, 0),
 	}
 
 	for i, elem := range elems {
@@ -38,7 +39,7 @@ func NewUnionFind[T constraints.Ordered](elems ...T) (*UnionFind[T], error) {
 		unionFind.indices = append(unionFind.indices, int32(i))
 		unionFind.size++
 		unionFind.numComponents++
-		unionFind.compSize[i] = 1
+		unionFind.compSize = append(unionFind.compSize, 1)
 	}
 
 	return unionFind, nil
