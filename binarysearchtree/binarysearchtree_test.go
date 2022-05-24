@@ -11,12 +11,10 @@ func Test_NewBinarySearchTree(t *testing.T) {
 	bst := NewBinarySearchTree[string]()
 
 	is.EqualValues(bst.nodeCount, 0)
-	is.Empty(bst.Root.data)
-	is.Nil(bst.Root.left)
-	is.Nil(bst.Root.right)
+	is.Nil(bst.Root)
 }
 
-func Test_Insert(t *testing.T) {
+func Test_Add(t *testing.T) {
 	is := assert.New(t)
 	bst := NewBinarySearchTree[int]()
 
@@ -108,12 +106,80 @@ func Test_Insert(t *testing.T) {
 				is.Equal(bst.Root.right.right.data, 6)
 			},
 		},
+		{
+			name: "insert one more last element",
+			args: args{
+				data: 3,
+			},
+			bst: bst,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Nil(err)
+				is.EqualValues(bst.nodeCount, 6)
+
+				is.NotNil(bst.Root.left.right)
+
+				is.Equal(bst.Root.left.right.data, 3)
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.bst.Insert(tt.args.data)
+			err := tt.bst.Add(tt.args.data)
 			tt.want(tt.bst, err)
+		})
+	}
+}
+
+func Test_Contains(t *testing.T) {
+	is := assert.New(t)
+	bst := NewBinarySearchTree[string]()
+
+	type args struct {
+		data string
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		bst   *BinarySearchTree[string]
+		setup func(*BinarySearchTree[string])
+		want  func(bool)
+	}{
+		{
+			name: "search empty BST",
+			args: args{
+				data: "A",
+			},
+			bst: bst,
+			want: func(b bool) {
+				is.False(b)
+			},
+		},
+		{
+			name: "find A in BST",
+			args: args{
+				data: "A",
+			},
+			bst: bst,
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Add("B")
+				bst.Add("A")
+				bst.Add("C")
+			},
+			want: func(b bool) {
+				is.True(b)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(tt.bst)
+			}
+			isPresent := tt.bst.Contains(tt.args.data)
+			tt.want(isPresent)
 		})
 	}
 }
