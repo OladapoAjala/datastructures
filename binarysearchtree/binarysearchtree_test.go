@@ -19,7 +19,7 @@ func Test_Add(t *testing.T) {
 	bst := NewBinarySearchTree[int]()
 
 	type args struct {
-		data int
+		data []int
 	}
 
 	tests := []struct {
@@ -31,7 +31,7 @@ func Test_Add(t *testing.T) {
 		{
 			name: "insert root element",
 			args: args{
-				data: 4,
+				data: []int{4},
 			},
 			bst: bst,
 			want: func(bst *BinarySearchTree[int], err error) {
@@ -43,7 +43,7 @@ func Test_Add(t *testing.T) {
 		{
 			name: "insert element lesser than root",
 			args: args{
-				data: 2,
+				data: []int{2},
 			},
 			bst: bst,
 			want: func(bst *BinarySearchTree[int], err error) {
@@ -57,7 +57,7 @@ func Test_Add(t *testing.T) {
 		{
 			name: "insert element greater than root",
 			args: args{
-				data: 5,
+				data: []int{5},
 			},
 			bst: bst,
 			want: func(bst *BinarySearchTree[int], err error) {
@@ -72,7 +72,7 @@ func Test_Add(t *testing.T) {
 		{
 			name: "insert element to left sub-tree",
 			args: args{
-				data: 1,
+				data: []int{1},
 			},
 			bst: bst,
 			want: func(bst *BinarySearchTree[int], err error) {
@@ -90,7 +90,7 @@ func Test_Add(t *testing.T) {
 		{
 			name: "insert element to right sub-tree",
 			args: args{
-				data: 6,
+				data: []int{6},
 			},
 			bst: bst,
 			want: func(bst *BinarySearchTree[int], err error) {
@@ -109,7 +109,7 @@ func Test_Add(t *testing.T) {
 		{
 			name: "insert one more last element",
 			args: args{
-				data: 3,
+				data: []int{3},
 			},
 			bst: bst,
 			want: func(bst *BinarySearchTree[int], err error) {
@@ -121,11 +121,27 @@ func Test_Add(t *testing.T) {
 				is.Equal(bst.Root.left.right.data, 3)
 			},
 		},
+		{
+			name: "insert an array of data",
+			args: args{
+				data: []int{10, 7, 8, 11},
+			},
+			bst: bst,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Nil(err)
+				is.EqualValues(bst.nodeCount, 10)
+
+				is.Equal(bst.Root.right.right.right.data, 10)
+				is.Equal(bst.Root.right.right.right.left.data, 7)
+				is.Equal(bst.Root.right.right.right.left.right.data, 8)
+				is.Equal(bst.Root.right.right.right.right.data, 11)
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.bst.Add(tt.args.data)
+			err := tt.bst.Add(tt.args.data...)
 			tt.want(tt.bst, err)
 		})
 	}
@@ -180,6 +196,98 @@ func Test_Contains(t *testing.T) {
 			}
 			isPresent := tt.bst.Contains(tt.args.data)
 			tt.want(isPresent)
+		})
+	}
+}
+
+func Test_Remove(t *testing.T) {
+	is := assert.New(t)
+	bst := NewBinarySearchTree[string]()
+
+	type args struct {
+		data string
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		bst   *BinarySearchTree[string]
+		setup func(*BinarySearchTree[string])
+		want  func(*BinarySearchTree[string], error)
+	}{
+		{
+			name: "simple removal",
+			args: args{
+				data: "A",
+			},
+			bst: bst,
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Add("B")
+				bst.Add("A")
+				bst.Add("C")
+			},
+			want: func(bst *BinarySearchTree[string], err error) {
+				is.Nil(err)
+				is.Equal(bst.Root.data, "B")
+				is.Nil(bst.Root.left)
+				is.Equal(bst.Root.right.data, "C")
+				is.EqualValues(bst.nodeCount, 2)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(tt.bst)
+			}
+			err := tt.bst.Remove(tt.args.data)
+			tt.want(tt.bst, err)
+		})
+	}
+}
+
+func Test_Height(t *testing.T) {
+	is := assert.New(t)
+	bst := NewBinarySearchTree[string]()
+
+	tests := []struct {
+		name  string
+		bst   *BinarySearchTree[string]
+		setup func(*BinarySearchTree[string])
+		want  func(int32)
+	}{
+		{
+			name: "simple BST",
+			bst:  bst,
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Add("B")
+				bst.Add("A")
+				bst.Add("C")
+			},
+			want: func(height int32) {
+				is.EqualValues(height, 2)
+			},
+		},
+		{
+			name: "longer right sub-tree",
+			bst:  bst,
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Add("D")
+			},
+			want: func(height int32) {
+				is.EqualValues(height, 3)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(tt.bst)
+			}
+			height := tt.bst.Height()
+			tt.want(height)
 		})
 	}
 }

@@ -2,12 +2,17 @@ package binarysearchtree
 
 import (
 	"fmt"
+	"math"
 
 	"golang.org/x/exp/constraints"
 )
 
-const GREATER int32 = 1
-const LESSER int32 = 0
+const (
+	preOrder = iota
+	inOrder
+	postOrder
+	levelOrder
+)
 
 type node[T constraints.Ordered] struct {
 	data  T
@@ -31,8 +36,8 @@ type IBinarySearchTree[T constraints.Ordered] interface {
 	add(*node[T], T) *node[T]
 	Contains(T) bool
 	Remove(T) error
-	remove(*node[T], T)
 	Size() int32
+	Height() int32
 }
 
 // var _ IBinarySearchTree[string] = new(BinarySearchTree[string])
@@ -41,13 +46,15 @@ func NewBinarySearchTree[T constraints.Ordered]() *BinarySearchTree[T] {
 	return new(BinarySearchTree[T])
 }
 
-func (bst *BinarySearchTree[T]) Add(data T) error {
-	if isPresent := bst.Contains(data); isPresent {
-		return fmt.Errorf("%v present in tree", data)
-	}
+func (bst *BinarySearchTree[T]) Add(data ...T) error {
+	for _, d := range data {
+		if isPresent := bst.Contains(d); isPresent {
+			return fmt.Errorf("%v present in tree", d)
+		}
 
-	bst.Root = add(bst.Root, data)
-	bst.nodeCount++
+		bst.Root = add(bst.Root, d)
+		bst.nodeCount++
+	}
 	return nil
 }
 
@@ -64,13 +71,6 @@ func add[T constraints.Ordered](node *node[T], data T) *node[T] {
 
 	return node
 }
-
-// func compare[T constraints.Ordered](a, b T) int32 {
-// 	if a >= b {
-// 		return GREATER
-// 	}
-// 	return LESSER
-// }
 
 func (bst *BinarySearchTree[T]) Contains(data T) bool {
 	return contains(bst.Root, data)
@@ -90,8 +90,63 @@ func contains[T constraints.Ordered](node *node[T], data T) bool {
 	return true
 }
 
+func (bst *BinarySearchTree[T]) Remove(data T) error {
+	if !bst.Contains(data) {
+		return fmt.Errorf("%v not present in tree", data)
+	}
+
+	bst.Root = remove(bst.Root, data)
+	bst.nodeCount--
+	return nil
+}
+
+// You don't know why this works yet!
+func remove[T constraints.Ordered](node *node[T], data T) *node[T] {
+	if node == nil {
+		return nil
+	}
+
+	if data < node.data {
+		node.left = remove(node.left, data)
+	} else if data > node.data {
+		node.right = remove(node.right, data)
+	} else {
+		if node.left == nil {
+			return node.right
+		} else if node.right == nil {
+			return node.left
+		} else {
+			tmp := findMin(node.right)
+			node.data = tmp.data
+			node.right = remove(node.right, tmp.data)
+		}
+	}
+
+	return node
+}
+
+func findMin[T constraints.Ordered](node *node[T]) *node[T] {
+	for node.left != nil {
+		node = node.left
+	}
+	return node
+}
+
 func (bst *BinarySearchTree[T]) Size() int32 {
 	return bst.nodeCount
+}
+
+func (bst *BinarySearchTree[T]) Height() int32 {
+	return height(bst.Root)
+}
+
+func height[T constraints.Ordered](node *node[T]) int32 {
+	if node == nil {
+		return 0
+	}
+
+	height := math.Max(float64(height(node.left)), float64(height(node.right))) + 1
+	return int32(height)
 }
 
 /***
@@ -158,5 +213,13 @@ func (bst *BinarySearchTree[T]) Size() int32 {
 		}
 
 		return false, nil
+	}
+
+	3. Unused method
+	func compare[T constraints.Ordered](a, b T) int32 {
+		if a >= b {
+			return GREATER
+		}
+		return LESSER
 	}
 ***/
