@@ -234,8 +234,32 @@ func Test_Remove(t *testing.T) {
 				is.EqualValues(bst.nodeCount, 2)
 			},
 		},
+		{
+			name: "complex removal",
+			args: args{
+				data: "E",
+			},
+			bst: bst,
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Add("E")
+				bst.Add("D")
+				bst.Add("I")
+				bst.Add("F")
+				bst.Add("J")
+			},
+			want: func(bst *BinarySearchTree[string], err error) {
+				is.Nil(err)
+				is.Equal(bst.Root.data, "B")
+				is.Nil(bst.Root.left)
+				is.Equal(bst.Root.right.data, "C")
+				is.Equal(bst.Root.right.right.data, "F")
+				is.Equal(bst.Root.right.right.left.data, "D")
+				is.Equal(bst.Root.right.right.right.data, "I")
+				is.Nil(bst.Root.right.right.right.left)
+				is.Equal(bst.Root.right.right.right.right.data, "J")
+			},
+		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {

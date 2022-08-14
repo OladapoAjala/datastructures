@@ -32,15 +32,14 @@ type BinarySearchTree[T constraints.Ordered] struct {
 }
 
 type IBinarySearchTree[T constraints.Ordered] interface {
-	Add(T) error
-	add(*node[T], T) *node[T]
+	Add(...T) error
 	Contains(T) bool
 	Remove(T) error
 	Size() int32
 	Height() int32
 }
 
-// var _ IBinarySearchTree[string] = new(BinarySearchTree[string])
+var _ IBinarySearchTree[string] = new(BinarySearchTree[string])
 
 func NewBinarySearchTree[T constraints.Ordered]() *BinarySearchTree[T] {
 	return new(BinarySearchTree[T])
@@ -100,7 +99,6 @@ func (bst *BinarySearchTree[T]) Remove(data T) error {
 	return nil
 }
 
-// You don't know why this works yet!
 func remove[T constraints.Ordered](node *node[T], data T) *node[T] {
 	if node == nil {
 		return nil
