@@ -58,6 +58,20 @@ func TestQueue_Dequeue(t *testing.T) {
 				return q.Head.Data == "B" && got == "A" && q.Length == 2
 			},
 		},
+		{
+			name:  "deque another element",
+			queue: testQueue,
+			want: func(q *Queue[string], got any) bool {
+				return q.Head.Data == "C" && got == "B" && q.Length == 1
+			},
+		},
+		{
+			name:  "remove last element from queue",
+			queue: testQueue,
+			want: func(q *Queue[string], got any) bool {
+				return q.Head == nil && got == "C" && q.Length == 0
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
