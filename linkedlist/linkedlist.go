@@ -138,6 +138,13 @@ func (l *LinkedList[T]) Remove(index int32) (T, error) {
 		return zero, err
 	}
 
+	if l.Size() == 1 {
+		l.Tail = nil
+		l.Head = nil
+		l.Length--
+		return oldNode.Data, nil
+	}
+
 	if l.Tail == oldNode {
 		l.Tail.Prev.Next = nil
 		l.Tail = l.Tail.Prev

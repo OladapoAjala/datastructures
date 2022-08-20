@@ -168,6 +168,16 @@ func TestLinkedList_Remove(t *testing.T) {
 				return l.Head.Next.Data == "Node 2" && l.Tail.Data == "Node 2" && got == "Node 1"
 			},
 		},
+		{
+			name: "remove last element in the list",
+			args: args{
+				index: 0,
+			},
+			list: NewList("Node 0"),
+			want: func(l *LinkedList[string], got any) bool {
+				return l.Head == nil && l.Tail == nil && got == "Node 0"
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
