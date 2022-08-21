@@ -1,6 +1,7 @@
 package binarysearchtree
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -314,4 +315,27 @@ func Test_Height(t *testing.T) {
 			tt.want(height)
 		})
 	}
+}
+
+func Test_Traverse(t *testing.T) {
+	bst := NewBinarySearchTree[string]()
+	bst.Add("j")
+	bst.Add("f")
+	bst.Add("n")
+	bst.Add("b")
+	bst.Add("h")
+	bst.Add("l")
+	bst.Add("p")
+
+	fmt.Println("=====INORDER TRAVERSAL=====")
+	inOrderTraversal(bst.Root)
+
+	fmt.Println("=====PREORDER TRAVERSAL=====")
+	preOrderTraversal(bst.Root)
+
+	fmt.Println("=====POSTORDER TRAVERSAL=====")
+	postOrderTraversal(bst.Root)
+
+	fmt.Println("=====LEVELORDER TRAVERSAL=====")
+	levelOrderTraversal(bst.Root)
 }

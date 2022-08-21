@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/OladapoAjala/datastructures/queue"
 	"golang.org/x/exp/constraints"
 )
 
@@ -37,6 +38,7 @@ type IBinarySearchTree[T constraints.Ordered] interface {
 	Remove(T) error
 	Size() int32
 	Height() int32
+	Traverse(int)
 }
 
 var _ IBinarySearchTree[string] = new(BinarySearchTree[string])
@@ -145,6 +147,101 @@ func height[T constraints.Ordered](node *node[T]) int32 {
 
 	height := math.Max(float64(height(node.left)), float64(height(node.right))) + 1
 	return int32(height)
+}
+
+func (bst *BinarySearchTree[T]) Traverse(traversal int) {
+	switch traversal {
+	case preOrder:
+		preOrderTraversal(bst.Root)
+	case inOrder:
+		inOrderTraversal(bst.Root)
+	case postOrder:
+		postOrderTraversal(bst.Root)
+	case levelOrder:
+		levelOrderTraversal(bst.Root)
+	default:
+		return
+	}
+}
+
+func preOrderTraversal[T constraints.Ordered](root *node[T]) {
+	if root == nil {
+		return
+	}
+
+	fmt.Println(root.data)
+	preOrderTraversal(root.left)
+	preOrderTraversal(root.right)
+}
+
+func inOrderTraversal[T constraints.Ordered](root *node[T]) {
+	if root == nil {
+		return
+	}
+
+	inOrderTraversal(root.left)
+	fmt.Println(root.data)
+	inOrderTraversal(root.right)
+}
+
+func postOrderTraversal[T constraints.Ordered](root *node[T]) {
+	if root == nil {
+		return
+	}
+
+	fmt.Println(root.data)
+	postOrderTraversal(root.left)
+	postOrderTraversal(root.right)
+}
+
+func levelOrderTraversal[T constraints.Ordered](root *node[T]) {
+	if root == nil {
+		return
+	}
+
+	height := height(root)
+	var i int32
+	for i = 0; i < height; i++ {
+		fmt.Printf("Level %d: ", i)
+		printLevel(i, root)
+		fmt.Println()
+	}
+}
+
+func printLevel[T constraints.Ordered](lvl int32, root *node[T]) {
+	if root == nil {
+		return
+	}
+
+	if lvl == 0 {
+		fmt.Printf("%v -> ", root.data)
+	} else {
+		lvl--
+		printLevel(lvl, root.left)
+		printLevel(lvl, root.right)
+	}
+}
+
+func breadthFirstSearch[T constraints.Ordered](bst *BinarySearchTree[T]) {
+	que := queue.NewQueue[*node[T]]()
+	que.Enqueue(bst.Root)
+
+	for {
+		_node, err := que.Dequeue()
+		if err != nil {
+			return
+		}
+
+		fmt.Println(_node.data)
+
+		if _node.left != nil {
+			que.Enqueue(_node.left)
+		}
+
+		if _node.right != nil {
+			que.Enqueue(_node.right)
+		}
+	}
 }
 
 /***
