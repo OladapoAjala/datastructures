@@ -1,0 +1,28 @@
+### List of Data Structures
+1. Static arrays
+2. Dynamic arrays
+3. Singly linked list
+4. Dynamic linked list
+5. Trees
+6. Heaps -> which (I think) are a kind of tree 
+7. Graph
+
+### List of ADTs
+1. List
+2. Queue
+3. Stack
+4. Map
+
+
+### 
+There are many implementations of a heap:
+    a. binay heap
+    b. fibonacci heap
+    c. binomial heap
+    d. pairing heap
+
+### Binary Heaps
+-> Left child = 2i + 1
+-> Right child = 2i + 2
+
+For binary heaps implemented with an array.

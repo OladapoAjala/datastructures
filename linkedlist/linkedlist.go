@@ -27,7 +27,7 @@ type ILinkedList[T any] interface {
 
 var _ ILinkedList[string] = new(LinkedList[string])
 
-func NewList[T comparable](data ...T) *LinkedList[T] {
+func NewList[T any](data ...T) *LinkedList[T] {
 	list := new(LinkedList[T])
 	for _, d := range data {
 		list.Add(d)
