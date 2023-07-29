@@ -243,7 +243,7 @@ func TestLinkedList_Delete(t *testing.T) {
 				is.Nil(err)
 				is.Nil(ll.Head)
 				is.Nil(ll.Tail)
-				is.EqualValues(ll.Length, 0)
+				is.EqualValues(ll.Size(), 0)
 			},
 		},
 	}

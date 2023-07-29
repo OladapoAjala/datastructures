@@ -8,7 +8,7 @@ import (
 )
 
 type LinkedList[T comparable] struct {
-	Length int32
+	length int32
 	Head   *node.Node[T]
 	Tail   *node.Node[T]
 }
@@ -67,7 +67,7 @@ func (l *LinkedList[T]) InsertFirst(data T) error {
 		newNode := node.NewNode[T]()
 		newNode.Data = data
 		l.Head, l.Tail = newNode, newNode
-		l.Length++
+		l.length++
 		return nil
 	}
 
@@ -78,7 +78,7 @@ func (l *LinkedList[T]) InsertFirst(data T) error {
 
 	l.Head.Prev = newNode
 	l.Head = newNode
-	l.Length++
+	l.length++
 
 	return nil
 }
@@ -95,7 +95,7 @@ func (l *LinkedList[T]) InsertLast(data T) error {
 
 	l.Tail.Next = newNode
 	l.Tail = newNode
-	l.Length++
+	l.length++
 
 	return nil
 }
@@ -117,13 +117,13 @@ func (l *LinkedList[T]) Insert(index int32, data T) error {
 
 	oldNode.Prev.Next = newNode
 	oldNode.Prev = newNode
-	l.Length++
+	l.length++
 
 	return nil
 }
 
 func (l *LinkedList[T]) IsEmpty() bool {
-	return l.Length == 0
+	return l.length == 0
 }
 
 func (l *LinkedList[T]) Delete(index int32) error {
@@ -139,27 +139,27 @@ func (l *LinkedList[T]) Delete(index int32) error {
 	if l.Size() == 1 {
 		l.Tail = nil
 		l.Head = nil
-		l.Length--
+		l.length--
 		return nil
 	}
 
 	if l.Tail == oldNode {
 		l.Tail.Prev.Next = nil
 		l.Tail = l.Tail.Prev
-		l.Length--
+		l.length--
 		return nil
 	}
 
 	if l.Head == oldNode {
 		l.Head = l.Head.Next
 		l.Head.Prev = nil
-		l.Length--
+		l.length--
 		return nil
 	}
 
 	oldNode.Next.Prev = oldNode.Prev
 	oldNode.Prev.Next = oldNode.Next
-	l.Length--
+	l.length--
 	return nil
 }
 
@@ -168,7 +168,7 @@ func (l *LinkedList[T]) DeleteFirst() error {
 }
 
 func (l *LinkedList[T]) DeleteLast() error {
-	return l.Delete(l.Length - 1)
+	return l.Delete(l.length - 1)
 }
 
 func (l *LinkedList[T]) Clear() error {
@@ -198,9 +198,10 @@ func (l *LinkedList[T]) Reverse() error {
 }
 
 func (l *LinkedList[T]) Size() int32 {
-	return l.Length
+	return l.length
 }
 
+// TODO: complete sort function.
 func (l *LinkedList[T]) Sort() error {
 	return nil
 }

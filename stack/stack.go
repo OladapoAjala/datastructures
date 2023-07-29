@@ -38,12 +38,12 @@ func (s *Stack[T]) Pop() (T, error) {
 		return zero, fmt.Errorf("cannot pop from empty stack")
 	}
 
-	node, err := s.GetNode(s.Length - 1)
+	node, err := s.GetNode(s.Size() - 1)
 	if err != nil {
 		return zero, fmt.Errorf("error getting head of stack")
 	}
 
-	err = s.Delete(s.Length - 1)
+	err = s.Delete(s.Size() - 1)
 	if err != nil {
 		return zero, fmt.Errorf("unable to delete last element in stack")
 	}
