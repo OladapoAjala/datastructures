@@ -16,11 +16,13 @@ type LinkedList[T comparable] struct {
 type ILinkedList[T comparable] interface {
 	sequences.Sequencer[T]
 	GetNode(int32) (*node.Node[T], error)
-	ToArray() []T
-	Reverse() (*LinkedList[T], error)
+	ToArray() ([]T, error)
+	Reverse() error
+	Sort() error
+	Clear() error
 }
 
-// var _ ILinkedList[string] = new(LinkedList[string])
+var _ ILinkedList[string] = new(LinkedList[string])
 
 func NewList[T comparable](data ...T) *LinkedList[T] {
 	list := new(LinkedList[T])
@@ -178,14 +180,37 @@ func (l *LinkedList[T]) Clear() error {
 	return nil
 }
 
+func (l *LinkedList[T]) Reverse() error {
+	if l.IsEmpty() {
+		return fmt.Errorf("cannot reverse empty list")
+	}
+
+	for it := l.Head; it != nil; it = it.Prev {
+		next := it.Next
+		it.Next = it.Prev
+		it.Prev = next
+	}
+
+	head := l.Head
+	l.Head = l.Tail
+	l.Tail = head
+	return nil
+}
+
 func (l *LinkedList[T]) Size() int32 {
 	return l.Length
 }
 
-func (l *LinkedList[T]) Sort() (*LinkedList[T], error) {
-	return nil, nil
+func (l *LinkedList[T]) Sort() error {
+	return nil
 }
 
-func (l *LinkedList[T]) Reverse() (*LinkedList[T], error) {
-	return nil, nil
+func (l *LinkedList[T]) ToArray() ([]T, error) {
+	array := make([]T, l.Size())
+	i := 0
+	for it := l.Head; it != nil; it = it.Next {
+		array[i] = it.Data
+		i++
+	}
+	return array, nil
 }

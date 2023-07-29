@@ -309,3 +309,115 @@ func TestLinkedList_DeleteFirst(t *testing.T) {
 		})
 	}
 }
+
+func TestLinkedList_Reverse(t *testing.T) {
+	is := assert.New(t)
+
+	tests := []struct {
+		name string
+		list *LinkedList[string]
+		want func(*LinkedList[string], error)
+	}{
+		{
+			name: "reverse empty list",
+			list: NewList[string](),
+			want: func(ll *LinkedList[string], err error) {
+				is.Error(err, "cannot reverse empty list")
+			},
+		},
+		{
+			name: "simple reverse",
+			list: NewList("Node 0", "Node 1"),
+			want: func(ll *LinkedList[string], err error) {
+				is.Nil(err)
+				data, err := ll.GetData(0)
+				is.Nil(err)
+				is.Equal(data, "Node 1")
+				data, err = ll.GetData(1)
+				is.Nil(err)
+				is.Equal(data, "Node 0")
+			},
+		},
+		{
+			name: "medium reverse",
+			list: NewList("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"),
+			want: func(ll *LinkedList[string], err error) {
+				is.Nil(err)
+				data, err := ll.GetData(0)
+				is.Nil(err)
+				is.Equal(data, "N")
+				data, err = ll.GetData(1)
+				is.Nil(err)
+				is.Equal(data, "M")
+				data, err = ll.GetData(2)
+				is.Nil(err)
+				is.Equal(data, "L")
+				data, err = ll.GetData(3)
+				is.Nil(err)
+				is.Equal(data, "K")
+				data, err = ll.GetData(4)
+				is.Nil(err)
+				is.Equal(data, "J")
+				data, err = ll.GetData(5)
+				is.Nil(err)
+				is.Equal(data, "I")
+				data, err = ll.GetData(6)
+				is.Nil(err)
+				is.Equal(data, "H")
+				data, err = ll.GetData(7)
+				is.Nil(err)
+				is.Equal(data, "G")
+				data, err = ll.GetData(8)
+				is.Nil(err)
+				is.Equal(data, "F")
+				data, err = ll.GetData(9)
+				is.Nil(err)
+				is.Equal(data, "E")
+				data, err = ll.GetData(10)
+				is.Nil(err)
+				is.Equal(data, "D")
+				data, err = ll.GetData(11)
+				is.Nil(err)
+				is.Equal(data, "C")
+				data, err = ll.GetData(12)
+				is.Nil(err)
+				is.Equal(data, "B")
+				data, err = ll.GetData(13)
+				is.Nil(err)
+				is.Equal(data, "A")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.list.Reverse()
+			tt.want(tt.list, err)
+		})
+	}
+}
+
+func TestLinkedList_ToArray(t *testing.T) {
+	is := assert.New(t)
+
+	tests := []struct {
+		name string
+		list *LinkedList[string]
+		want func([]string, error)
+	}{
+		{
+			name: "simple to array first",
+			list: NewList("Node 0", "Node 1"),
+			want: func(got []string, err error) {
+				is.Nil(err)
+				is.Equal(got[0], "Node 0")
+				is.Equal(got[1], "Node 1")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.list.ToArray()
+			tt.want(got, err)
+		})
+	}
+}
