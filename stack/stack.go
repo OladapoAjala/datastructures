@@ -3,14 +3,14 @@ package stack
 import (
 	"fmt"
 
-	"github.com/OladapoAjala/datastructures/linkedlist"
+	"github.com/OladapoAjala/datastructures/sequences/linkedlist"
 )
 
-type Stack[T any] struct {
+type Stack[T comparable] struct {
 	*linkedlist.LinkedList[T]
 }
 
-type IStack[T any] interface {
+type IStack[T comparable] interface {
 	Peek() (T, error)
 	Pop() (T, error)
 	Push(T) error
@@ -18,7 +18,7 @@ type IStack[T any] interface {
 
 var _ IStack[int] = new(Stack[int])
 
-func NewStack[T any]() *Stack[T] {
+func NewStack[T comparable]() *Stack[T] {
 	return &Stack[T]{
 		new(linkedlist.LinkedList[T]),
 	}
@@ -43,7 +43,7 @@ func (s *Stack[T]) Pop() (T, error) {
 		return zero, fmt.Errorf("error getting head of stack")
 	}
 
-	_, err = s.Remove(s.Length - 1)
+	err = s.Delete(s.Length - 1)
 	if err != nil {
 		return zero, fmt.Errorf("unable to delete last element in stack")
 	}
@@ -52,7 +52,7 @@ func (s *Stack[T]) Pop() (T, error) {
 }
 
 func (s *Stack[T]) Push(data T) error {
-	err := s.Add(data)
+	err := s.InsertLast(data)
 	if err != nil {
 		return err
 	}
