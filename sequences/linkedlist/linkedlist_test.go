@@ -20,7 +20,7 @@ func TestLinkedList_Get(t *testing.T) {
 	}{
 		{
 			name: "get data from empty list",
-			list: new(LinkedList[string]),
+			list: NewList[string](),
 			args: args{
 				index: 0,
 			},
@@ -63,7 +63,7 @@ func TestLinkedList_InsertLast(t *testing.T) {
 	}{
 		{
 			name: "append to an empty list",
-			list: new(LinkedList[string]),
+			list: NewList[string](),
 			args: args{
 				data: "DSA sucks",
 			},
@@ -108,7 +108,7 @@ func TestLinkedList_InsertFirst(t *testing.T) {
 	}{
 		{
 			name: "prepend to an empty list",
-			list: new(LinkedList[string]),
+			list: NewList[string](),
 			args: args{
 				data: "DSA Sucks",
 			},
