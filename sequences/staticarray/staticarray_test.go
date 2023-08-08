@@ -1,0 +1,181 @@
+package staticarray
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func Test_GetData(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		index int32
+	}
+	tests := []struct {
+		name        string
+		staticarray *StaticArray[string]
+		args        args
+		want        func(string, error)
+	}{
+		{
+			name:        "get data from empty staticarray",
+			staticarray: NewStaticArray[string](0),
+			args: args{
+				index: 0,
+			},
+			want: func(data string, err error) {
+				is.Empty(data)
+				is.Error(err, "index out of range")
+			},
+		},
+		{
+			name:        "get data at index 2 from staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				index: 2,
+			},
+			want: func(data string, err error) {
+				is.Nil(err)
+				is.Equal(data, "c")
+			},
+		},
+		{
+			name:        "get data at index 2 from staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				index: 2,
+			},
+			want: func(data string, err error) {
+				is.Nil(err)
+				is.Equal(data, "c")
+			},
+		},
+		{
+			name:        "get data from array with size lesser than input data",
+			staticarray: NewStaticArray[string](3, "a", "b", "c", "d", "e"),
+			args: args{
+				index: 4,
+			},
+			want: func(data string, err error) {
+				is.Empty(data)
+				is.Error(err, "index out of range")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := tt.staticarray.GetData(tt.args.index)
+			tt.want(data, err)
+		})
+	}
+}
+
+func Test_Contains(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		data string
+	}
+	tests := []struct {
+		name        string
+		staticarray *StaticArray[string]
+		args        args
+		want        func(bool)
+	}{
+		{
+			name:        "check if data is in empty staticarray",
+			staticarray: NewStaticArray[string](0),
+			args: args{
+				data: "a",
+			},
+			want: func(isPresent bool) {
+				is.False(isPresent)
+			},
+		},
+		{
+			name:        "check if data is in simple staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				data: "b",
+			},
+			want: func(isPresent bool) {
+				is.True(isPresent)
+			},
+		},
+		{
+			name:        "check if data is in array with size lesser than input data",
+			staticarray: NewStaticArray[string](3, "a", "b", "c", "d", "e"),
+			args: args{
+				data: "e",
+			},
+			want: func(isPresent bool) {
+				is.False(isPresent)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.staticarray.Contains(tt.args.data)
+			tt.want(got)
+		})
+	}
+}
+
+func Test_Insert(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		index int32
+		data  string
+	}
+	tests := []struct {
+		name        string
+		staticarray *StaticArray[string]
+		args        args
+		want        func(*StaticArray[string], error)
+	}{
+		{
+			name:        "insert data in empty staticarray",
+			staticarray: NewStaticArray[string](0),
+			args: args{
+				index: 0,
+				data:  "a",
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Error(err, "index out of range")
+			},
+		},
+		{
+			name:        "insert data in simple staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				index: 1,
+				data:  "d",
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Nil(err)
+				is.False(sa.Contains("b"))
+				data, err := sa.GetData(1)
+				is.Nil(err)
+				is.Equal(data, "d")
+			},
+		},
+		// {
+		// 	name:        "check if data is in array with size lesser than input data",
+		// 	staticarray: NewStaticArray[string](3, "a", "b", "c", "d", "e"),
+		// 	args: args{
+		// 		data: "e",
+		// 	},
+		// 	want: func(isPresent bool) {
+		// 		is.False(isPresent)
+		// 	},
+		// },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.staticarray.Insert(tt.args.index, tt.args.data)
+			tt.want(tt.staticarray, err)
+		})
+	}
+}

@@ -10,5 +10,6 @@ type Sequencer[T any] interface {
 	DeleteFirst() error
 	DeleteLast() error
 	Size() int32
+	Sort() error
 	IsEmpty() bool
 }

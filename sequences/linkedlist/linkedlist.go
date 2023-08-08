@@ -18,7 +18,6 @@ type ILinkedList[T comparable] interface {
 	GetNode(int32) (*node.Node[T], error)
 	ToArray() ([]T, error)
 	Reverse() error
-	Sort() error
 	Clear() error
 }
 
