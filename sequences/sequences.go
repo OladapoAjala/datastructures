@@ -13,3 +13,5 @@ type Sequencer[T any] interface {
 	Sort() error
 	IsEmpty() bool
 }
+
+type Sequence Sequencer[any]
