@@ -23,10 +23,17 @@ var _ IDynamicArray[string] = new(DynamicArray[string])
 
 func NewDynamicArray[T comparable](data ...T) *DynamicArray[T] {
 	da := new(DynamicArray[T])
+
+	if len(data) == 0 {
+		da.array = make([]T, 1)
+		da.length = 0
+		da.capacity = 1
+		return da
+	}
+
 	da.array = make([]T, 2*len(data))
 	da.length = int32(len(data))
 	da.capacity = int32(len(da.array))
-
 	copy(da.array, data)
 	return da
 }
@@ -35,11 +42,17 @@ func (da *DynamicArray[T]) GetData(index int32) (T, error) {
 	if index >= da.capacity {
 		return *new(T), fmt.Errorf("index out of range")
 	}
+	if index >= da.length {
+		return *new(T), fmt.Errorf("index out of range")
+	}
 	return da.array[index], nil
 }
 
 func (da *DynamicArray[T]) Contains(data T) bool {
-	for _, d := range da.array {
+	for i, d := range da.array {
+		if i == int(da.length) {
+			return false
+		}
 		if d == data {
 			return true
 		}
@@ -50,15 +63,17 @@ func (da *DynamicArray[T]) Contains(data T) bool {
 func (da *DynamicArray[T]) Insert(index int32, data T) error {
 	if index >= da.capacity {
 		newArray := make([]T, 2*da.capacity)
-		for i, d := range da.array {
-			newArray[i] = d
-		}
+		copy(newArray, da.array)
 		da.array = newArray
+		da.capacity = int32(len(da.array))
+		return da.Insert(index, data)
 	}
 
 	da.array[index] = data
-	da.length += 1
 	da.capacity = int32(len(da.array))
+	if index >= da.length {
+		da.length = index + 1
+	}
 	return nil
 }
 
