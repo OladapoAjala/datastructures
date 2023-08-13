@@ -104,20 +104,16 @@ func (l *LinkedList[T]) Insert(index int32, data T) error {
 		return l.InsertFirst(data)
 	}
 
+	if index >= l.Size() {
+		return l.InsertLast(data)
+	}
+
 	oldNode, err := l.GetNode(index)
 	if err != nil {
 		return fmt.Errorf("insertion failed: %v", err)
 	}
 
-	newNode := node.NewNode[T]()
-	newNode.Data = data
-	newNode.Prev = oldNode.Prev
-	newNode.Next = oldNode
-
-	oldNode.Prev.Next = newNode
-	oldNode.Prev = newNode
-	l.length++
-
+	oldNode.Data = data
 	return nil
 }
 
