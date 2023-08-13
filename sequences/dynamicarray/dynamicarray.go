@@ -82,6 +82,9 @@ func (da *DynamicArray[T]) InsertFirst(data T) error {
 }
 
 func (da *DynamicArray[T]) InsertLast(data T) error {
+	if da.length == 0 {
+		return da.Insert(0, data)
+	}
 	return da.Insert(da.length-1, data)
 }
 
@@ -99,6 +102,9 @@ func (da *DynamicArray[T]) DeleteFirst() error {
 }
 
 func (da *DynamicArray[T]) DeleteLast() error {
+	if da.length == 0 {
+		return da.Delete(0)
+	}
 	return da.Delete(da.length - 1)
 }
 

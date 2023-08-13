@@ -172,3 +172,101 @@ func Test_Insert(t *testing.T) {
 		})
 	}
 }
+
+func Test_InsertFirst(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		data string
+	}
+	tests := []struct {
+		name         string
+		dynamicarray *DynamicArray[string]
+		args         args
+		want         func(*DynamicArray[string], error)
+	}{
+		{
+			name:         "insert first data in empty dynamicarray",
+			dynamicarray: NewDynamicArray[string](),
+			args: args{
+				data: "a",
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.True(da.Contains("a"))
+				data, err := da.GetData(0)
+				is.Nil(err)
+				is.Equal(data, "a")
+			},
+		},
+		{
+			name:         "replace first data in simple dynamicarray",
+			dynamicarray: NewDynamicArray[string]("a", "b", "c"),
+			args: args{
+				data: "d",
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.False(da.Contains("a"))
+				data, err := da.GetData(0)
+				is.Nil(err)
+				is.Equal(data, "d")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.dynamicarray.InsertFirst(tt.args.data)
+			tt.want(tt.dynamicarray, err)
+		})
+	}
+}
+
+func Test_InsertLast(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		data string
+	}
+	tests := []struct {
+		name         string
+		dynamicarray *DynamicArray[string]
+		args         args
+		want         func(*DynamicArray[string], error)
+	}{
+		{
+			name:         "insert last data in empty dynamicarray",
+			dynamicarray: NewDynamicArray[string](),
+			args: args{
+				data: "a",
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.True(da.Contains("a"))
+				data, err := da.GetData(da.Size() - 1)
+				is.Nil(err)
+				is.Equal(data, "a")
+			},
+		},
+		{
+			name:         "replace last data in simple dynamicarray",
+			dynamicarray: NewDynamicArray[string]("a", "b", "c"),
+			args: args{
+				data: "d",
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.False(da.Contains("c"))
+				data, err := da.GetData(da.Size() - 1)
+				is.Nil(err)
+				is.Equal(data, "d")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.dynamicarray.InsertLast(tt.args.data)
+			tt.want(tt.dynamicarray, err)
+		})
+	}
+}
