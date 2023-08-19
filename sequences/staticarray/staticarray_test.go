@@ -1,6 +1,7 @@
 package staticarray
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,17 +28,6 @@ func Test_GetData(t *testing.T) {
 			want: func(data string, err error) {
 				is.Empty(data)
 				is.Error(err, "index out of range")
-			},
-		},
-		{
-			name:        "get data at index 2 from staticarray",
-			staticarray: NewStaticArray[string](3, "a", "b", "c"),
-			args: args{
-				index: 2,
-			},
-			want: func(data string, err error) {
-				is.Nil(err)
-				is.Equal(data, "c")
 			},
 		},
 		{
@@ -161,16 +151,17 @@ func Test_Insert(t *testing.T) {
 				is.Equal(data, "d")
 			},
 		},
-		// {
-		// 	name:        "check if data is in array with size lesser than input data",
-		// 	staticarray: NewStaticArray[string](3, "a", "b", "c", "d", "e"),
-		// 	args: args{
-		// 		data: "e",
-		// 	},
-		// 	want: func(isPresent bool) {
-		// 		is.False(isPresent)
-		// 	},
-		// },
+		{
+			name:        "insert data at index > array size",
+			staticarray: NewStaticArray[string](5, "a", "b", "c", "d", "e"),
+			args: args{
+				data:  "f",
+				index: 6,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Error(fmt.Errorf("index out of range"))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

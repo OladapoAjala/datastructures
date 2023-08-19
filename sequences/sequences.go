@@ -1,6 +1,7 @@
 package sequences
 
 type Sequencer[T any] interface {
+	// New[S types.Sequences[T]]() (S, error)
 	GetData(int32) (T, error)
 	Contains(T) bool
 	Insert(int32, T) error
@@ -13,5 +14,3 @@ type Sequencer[T any] interface {
 	Sort() error
 	IsEmpty() bool
 }
-
-type Sequence Sequencer[any]
