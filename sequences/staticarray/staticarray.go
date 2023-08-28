@@ -81,11 +81,6 @@ func (sa *StaticArray[T]) Size() int32 {
 	return sa.length
 }
 
-// TODO: complete sort function. (merge sort)
-func (sa *StaticArray[T]) Sort() error {
-	return nil
-}
-
 func (sa *StaticArray[T]) IsEmpty() bool {
 	return sa.length == 0
 }

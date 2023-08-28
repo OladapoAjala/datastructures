@@ -116,11 +116,6 @@ func (da *DynamicArray[T]) Capacity() int32 {
 	return da.capacity
 }
 
-// TODO: complete sort function (merge sort).
-func (da *DynamicArray[T]) Sort() error {
-	return nil
-}
-
 func (da *DynamicArray[T]) IsEmpty() bool {
 	return da.length == 0
 }

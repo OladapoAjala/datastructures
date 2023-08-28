@@ -196,11 +196,6 @@ func (l *LinkedList[T]) Size() int32 {
 	return l.length
 }
 
-// TODO: complete sort function.
-func (l *LinkedList[T]) Sort() error {
-	return nil
-}
-
 func (l *LinkedList[T]) ToArray() ([]T, error) {
 	array := make([]T, l.Size())
 	i := 0
