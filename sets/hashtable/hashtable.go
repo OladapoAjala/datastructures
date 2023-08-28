@@ -1,8 +1,7 @@
 package hashtable
 
 import (
-	"github.com/OladapoAjala/datastructures/linkedlist"
-	"github.com/OladapoAjala/datastructures/utils"
+	"github.com/OladapoAjala/datastructures/sequences/linkedlist"
 	"golang.org/x/exp/constraints"
 )
 
@@ -17,8 +16,8 @@ func NewEntry[K constraints.Ordered](key K, value any) *Entry[K] {
 		key:   key,
 		value: value,
 	}
-	keyBytes := []byte(key)
-	entry.hash = utils.FNVHash(key)
+	// keyBytes := []byte(key)
+	// entry.hash = utils.FNVHash(key)
 	return entry
 }
 
@@ -31,7 +30,7 @@ func (e *Entry[K]) equal(val *Entry[K]) bool {
 
 type HashTable[K constraints.Ordered, V Entry[K]] struct {
 	size  int
-	Table []*linkedlist.LinkedList[*V]
+	Table []*linkedlist.LinkedList[string]
 }
 
 type IHashTable[K constraints.Ordered, V any] interface {
@@ -47,13 +46,19 @@ func NewHashTable[K constraints.Ordered, V any]() *HashTable[K, Entry[K]] {
 }
 
 func (h *HashTable[K, V]) Insert(key K, value any) error {
-	entry := NewEntry[K](key, value)
-	pos := entry.hash % h.size
-	h.Table[pos] = linkedlist.NewList[*V](entry)
+	// entry := NewEntry[K](key, value)
+	// pos := entry.hash % h.size
+	// h.Table[pos] = linkedlist.NewList[*V](entry)
 	return nil
 }
 
 func (h *HashTable[K, V]) LookUp(key K) (any, error) {
+	/*
+		1. compute hash with key
+		2. compute table index with hash
+		3. go to table index and look for linkedlist node with key
+		4. return value
+	*/
 	return nil, nil
 }
 
