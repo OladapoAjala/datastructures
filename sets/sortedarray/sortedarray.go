@@ -33,50 +33,53 @@ func NewSortedArray[K constraints.Ordered, V any](values ...*data.Data[K, V]) *S
 	sa.array = make([]*data.Data[K, V], 2*len(values))
 	sa.lenght = int32(len(values))
 	sa.capacity = int32(len(sa.array))
-	copy(sa.array, values)
-
-	sort[K, V](sa)
+	copy(sa.array, sort[K, V](values))
 	return sa
 }
 
-// Sort with mergesort.
-func sort[K constraints.Ordered, V any](sa *SortedArray[K, V]) {
-	if sa.Lenght() == 0 {
-		return
+func sort[K constraints.Ordered, V any](input []*data.Data[K, V]) []*data.Data[K, V] {
+	if len(input) <= 2 {
+		if len(input) == 2 {
+			if input[0].Key > input[1].Key {
+				input[0], input[1] = input[1], input[0]
+			}
+		}
+		return input
 	}
 
-	sortHelper[K, V](sa.array, sa.Lenght()-1)
+	mid := len(input) / 2
+	arr1 := sort(input[:mid])
+	arr2 := sort(input[mid:])
+
+	return merge(arr1, arr2)
 }
 
-func sortHelper[K constraints.Ordered, V any](arr []*data.Data[K, V], lim int32) {
-	if lim == 0 {
-		return
+func merge[K constraints.Ordered, V any](arrOne, arrTwo []*data.Data[K, V]) []*data.Data[K, V] {
+	p1, p2 := 0, 0
+	sorted := make([]*data.Data[K, V], 0)
+	for p1 < len(arrOne) && p2 < len(arrTwo) {
+		if arrOne[p1].Key <= arrTwo[p2].Key {
+			sorted = append(sorted, arrOne[p1])
+			p1++
+			continue
+		}
+
+		sorted = append(sorted, arrTwo[p2])
+		p2++
 	}
 
-	l := getLargest[K, V](arr, lim)
-	arr[lim], arr[l] = arr[l], arr[lim]
-	sortHelper[K, V](arr, lim-1)
-}
-
-func getLargest[K constraints.Ordered, V any](arr []*data.Data[K, V], lim int32) int32 {
-	if lim == 0 {
-		return lim
-	}
-
-	val := getLargest[K, V](arr, lim-1)
-	if arr[val].GetKey() > arr[lim].GetKey() {
-		return val
-	}
-	return lim
+	sorted = append(sorted, arrOne[p1:]...)
+	sorted = append(sorted, arrTwo[p2:]...)
+	return sorted
 }
 
 func (sa *SortedArray[K, V]) Find(key K) (V, error) {
-	if sa.Lenght() == 0 {
+	if sa.GetLenght() == 0 {
 		return *new(V), fmt.Errorf("empty array")
 	}
 
 	min := int32(0)
-	max := sa.Lenght() - 1
+	max := sa.GetLenght() - 1
 
 	for min <= max {
 		mid := (min + max) / 2
@@ -101,14 +104,14 @@ func (sa *SortedArray[K, V]) FindMin(key K) V {
 }
 
 func (sa *SortedArray[K, V]) FindMax() V {
-	return sa.array[sa.Lenght()-1].GetValue()
+	return sa.array[sa.GetLenght()-1].GetValue()
 }
 
-func (sa *SortedArray[K, V]) Lenght() int32 {
+func (sa *SortedArray[K, V]) GetLenght() int32 {
 	return sa.lenght
 }
 
-func (sa *SortedArray[K, V]) Capacity() int32 {
+func (sa *SortedArray[K, V]) GetCapacity() int32 {
 	return sa.capacity
 }
 

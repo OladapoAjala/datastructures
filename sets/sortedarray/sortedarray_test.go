@@ -20,7 +20,7 @@ func Test_Find(t *testing.T) {
 		}
 	}
 	testSortedArr := NewSortedArray[int, string](testData...)
-	val := testSortedArr.Lenght() - 1
+	val := testSortedArr.GetLenght() - 1
 	fmt.Println(val)
 	type args struct {
 		key int
@@ -68,7 +68,7 @@ func Test_Find(t *testing.T) {
 			name:        "find last element",
 			sortedarray: testSortedArr,
 			args: args{
-				key: testSortedArr.array[testSortedArr.Lenght()-1].Key,
+				key: testSortedArr.array[testSortedArr.GetLenght()-1].Key,
 			},
 			want: func(got string, err error) {
 				is.Nil(err)
@@ -94,7 +94,7 @@ func Test_Find(t *testing.T) {
 			},
 			want: func(got string, err error) {
 				is.NotNil(err)
-				is.Error(err, fmt.Errorf("key: %v not found", testSortedArr.Lenght()))
+				is.Error(err, fmt.Errorf("key: %v not found", testSortedArr.GetLenght()))
 			},
 		},
 	}
