@@ -65,8 +65,15 @@ func (sa *StaticArray[T]) Delete(index int32) error {
 		return fmt.Errorf("index out of range")
 	}
 
-	sa.array[index] = *new(T)
+	sa.shift(index)
 	return nil
+}
+
+func (sa *StaticArray[T]) shift(index int32) {
+	for i := index; i < sa.Size()-1; i++ {
+		sa.array[i] = sa.array[i+1]
+	}
+	sa.array[sa.Size()-1] = *new(T)
 }
 
 func (sa *StaticArray[T]) DeleteFirst() error {

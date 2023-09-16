@@ -170,3 +170,98 @@ func Test_Insert(t *testing.T) {
 		})
 	}
 }
+
+func Test_Delete(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		index int32
+	}
+
+	tests := []struct {
+		name        string
+		staticarray *StaticArray[string]
+		args        args
+		want        func(*StaticArray[string], error)
+	}{
+		{
+			name:        "delete from empty staticarray",
+			staticarray: NewStaticArray[string](0),
+			args: args{
+				index: 0,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Error(err)
+				is.Equal(err.Error(), "index out of range")
+			},
+		},
+		{
+			name:        "delete from simple staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				index: 1,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Nil(err)
+				is.False(sa.Contains("b"))
+				is.Equal(sa, NewStaticArray[string](3, "a", "c", ""))
+			},
+		},
+		{
+			name:        "delete from invalid index",
+			staticarray: NewStaticArray[string](5, "a", "b", "c", "d", "e"),
+			args: args{
+				index: 6,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Error(err)
+				is.Equal(err.Error(), "index out of range")
+				// Ensure no changes in the array
+				is.Equal(sa, NewStaticArray[string](5, "a", "b", "c", "d", "e"))
+			},
+		},
+		{
+			name:        "delete from staticarray with a single element",
+			staticarray: NewStaticArray[string](1, "x"),
+			args: args{
+				index: 0,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Nil(err)
+				is.False(sa.Contains("x"))
+				is.Equal(sa, NewStaticArray[string](1, ""))
+			},
+		},
+		{
+			name:        "delete last element in a non-empty staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				index: 2,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Nil(err)
+				is.False(sa.Contains("c"))
+				is.Equal(sa, NewStaticArray[string](3, "a", "b", ""))
+			},
+		},
+		{
+			name:        "delete first element in a non-empty staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				index: 0,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Nil(err)
+				is.False(sa.Contains("a"))
+				is.Equal(sa, NewStaticArray[string](3, "b", "c", ""))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.staticarray.Delete(tt.args.index)
+			tt.want(tt.staticarray, err)
+		})
+	}
+}
