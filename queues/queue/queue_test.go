@@ -77,7 +77,7 @@ func TestQueue_Dequeue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.queue.Dequeue()
 			if err != nil {
-				t.Errorf("Stack.Peek() error = %v", err)
+				t.Errorf("Queue.Enqueue() error = %v", err)
 				return
 			}
 

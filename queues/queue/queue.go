@@ -38,7 +38,7 @@ func (q *Queue[T]) Dequeue() (T, error) {
 		return zero, fmt.Errorf("unable to remove first element, %v", err)
 	}
 
-	err = q.Delete(0)
+	err = q.DeleteFirst()
 	if err != nil {
 		return zero, fmt.Errorf("unable to remove first element, %v", err)
 	}

@@ -159,11 +159,39 @@ func (l *LinkedList[T]) Delete(index int32) error {
 }
 
 func (l *LinkedList[T]) DeleteFirst() error {
-	return l.Delete(0)
+	if l.IsEmpty() {
+		return fmt.Errorf("cannot remove from empty list")
+	}
+
+	if l.Size() == 1 {
+		l.Tail = nil
+		l.Head = nil
+		l.length--
+		return nil
+	}
+
+	l.Head = l.Head.Next
+	l.Head.Prev = nil
+	l.length--
+	return nil
 }
 
 func (l *LinkedList[T]) DeleteLast() error {
-	return l.Delete(l.length - 1)
+	if l.IsEmpty() {
+		return fmt.Errorf("cannot remove from empty list")
+	}
+
+	if l.Size() == 1 {
+		l.Tail = nil
+		l.Head = nil
+		l.length--
+		return nil
+	}
+
+	l.Tail = l.Tail.Prev
+	l.Tail.Next = nil
+	l.length--
+	return nil
 }
 
 func (l *LinkedList[T]) Clear() error {
