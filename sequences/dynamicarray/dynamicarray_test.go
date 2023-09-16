@@ -270,3 +270,99 @@ func Test_InsertLast(t *testing.T) {
 		})
 	}
 }
+
+func Test_Delete(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		index int32
+	}
+
+	tests := []struct {
+		name         string
+		dynamicarray *DynamicArray[string]
+		args         args
+		want         func(*DynamicArray[string], error)
+	}{
+		{
+			name:         "delete from empty dynamicarray",
+			dynamicarray: NewDynamicArray[string](),
+			args: args{
+				index: 0,
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Error(err)
+				is.Equal(err.Error(), "cannot remove from empty array")
+				is.False(da.Contains("a"))
+			},
+		},
+		{
+			name:         "delete from simple dynamicarray",
+			dynamicarray: NewDynamicArray[string]("a", "b", "c"),
+			args: args{
+				index: 1,
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.False(da.Contains("b"))
+				val, err := da.GetData(0)
+				is.Nil(err)
+				is.Equal(val, "a")
+				val, err = da.GetData(1)
+				is.Nil(err)
+				is.Equal(val, "c")
+				val, err = da.GetData(2)
+				is.Equal(err.Error(), "index out of range")
+				is.Empty(val)
+			},
+		},
+		{
+			name:         "delete from invalid index",
+			dynamicarray: NewDynamicArray[string]("a", "b", "c"),
+			args: args{
+				index: 15,
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Error(err)
+				is.Equal(err.Error(), "index out of range")
+				is.False(da.Contains("f"))
+			},
+		},
+		{
+			name:         "delete from dynamicarray with single element",
+			dynamicarray: NewDynamicArray[string]("x"),
+			args: args{
+				index: 0,
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.False(da.Contains("x"))
+				is.Equal(da, NewDynamicArray[string]())
+			},
+		},
+		{
+			name:         "delete from dynamicarray with capacity reduction",
+			dynamicarray: NewDynamicArray[string]("a", "b", "c", "d", "e", "f", "g", "h"),
+			args: args{
+				index: 0,
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.False(da.Contains("a"))
+
+				for i := 1; i <= 3; i++ {
+					err = da.Delete(0)
+					is.Nil(err)
+				}
+				is.Equal(da, NewDynamicArray[string]("e", "f", "g", "h"))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.dynamicarray.Delete(tt.args.index)
+			tt.want(tt.dynamicarray, err)
+		})
+	}
+}

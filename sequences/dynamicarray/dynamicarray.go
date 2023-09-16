@@ -89,12 +89,31 @@ func (da *DynamicArray[T]) InsertLast(data T) error {
 }
 
 func (da *DynamicArray[T]) Delete(index int32) error {
+	if da.IsEmpty() {
+		return fmt.Errorf("cannot remove from empty array")
+	}
+
 	if index >= da.length {
 		return fmt.Errorf("index out of range")
 	}
 
-	da.array[index] = *new(T)
+	da.shift(index)
+	da.length--
+
+	if da.Size() <= da.Capacity()/4 {
+		output := make([]T, da.Capacity()/2)
+		copy(output, da.array)
+		da.array = output
+		da.capacity = int32(len(output))
+	}
+
 	return nil
+}
+
+func (da *DynamicArray[T]) shift(index int32) {
+	for i := index; i < da.Size(); i++ {
+		da.array[i] = da.array[i+1]
+	}
 }
 
 func (da *DynamicArray[T]) DeleteFirst() error {
