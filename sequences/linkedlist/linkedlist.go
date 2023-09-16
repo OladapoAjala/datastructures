@@ -122,34 +122,25 @@ func (l *LinkedList[T]) IsEmpty() bool {
 }
 
 func (l *LinkedList[T]) Delete(index int32) error {
+	if index >= l.Size() {
+		return fmt.Errorf("index out of range")
+	}
+
 	if l.IsEmpty() {
 		return fmt.Errorf("cannot remove from empty list")
+	}
+
+	if index == 0 {
+		return l.DeleteFirst()
+	}
+
+	if index == l.Size()-1 {
+		return l.DeleteLast()
 	}
 
 	oldNode, err := l.GetNode(index)
 	if err != nil {
 		return err
-	}
-
-	if l.Size() == 1 {
-		l.Tail = nil
-		l.Head = nil
-		l.length--
-		return nil
-	}
-
-	if l.Tail == oldNode {
-		l.Tail.Prev.Next = nil
-		l.Tail = l.Tail.Prev
-		l.length--
-		return nil
-	}
-
-	if l.Head == oldNode {
-		l.Head = l.Head.Next
-		l.Head.Prev = nil
-		l.length--
-		return nil
 	}
 
 	oldNode.Next.Prev = oldNode.Prev
