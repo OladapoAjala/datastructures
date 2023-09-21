@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Find(t *testing.T) {
+func TestSortedArray_Find(t *testing.T) {
 	is := assert.New(t)
 
 	testData := make([]*data.Data[int, string], 6)
@@ -51,6 +51,7 @@ func Test_Find(t *testing.T) {
 			want: func(got string, err error) {
 				is.NotNil(err)
 				is.Error(err, fmt.Errorf("empty array"))
+				is.Empty(got)
 			},
 		},
 		{
@@ -102,6 +103,190 @@ func Test_Find(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			data, err := tt.sortedarray.Find(tt.args.key)
 			tt.want(data, err)
+		})
+	}
+}
+
+func TestSortedArray_Insert(t *testing.T) {
+	is := assert.New(t)
+
+	tests := []struct {
+		name    string
+		setData []*data.Data[int, string]
+		key     int
+		value   string
+		want    func(*SortedArray[int, string], error)
+	}{
+		{
+			name:    "insert into an empty array",
+			setData: []*data.Data[int, string]{},
+			key:     1,
+			value:   "one",
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Nil(err)
+				is.Equal(sa.GetLenght(), int32(1))
+				is.Equal(sa.GetCapacity(), int32(2))
+				is.True(sa.IsSorted())
+				v, err := sa.Find(1)
+				is.Equal(v, "one")
+				is.Nil(err)
+			},
+		},
+		{
+			name: "insert into a non-empty array",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+				data.NewData(3, "three"),
+			},
+			key:   2,
+			value: "two",
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Nil(err)
+				is.Equal(sa.GetLenght(), int32(3))
+				is.True(sa.IsSorted())
+				v, err := sa.Find(2)
+				is.Equal(v, "two")
+				is.Nil(err)
+				is.Equal(sa.FindMin(), "one")
+				is.Equal(sa.FindMax(), "three")
+			},
+		},
+		{
+			name: "insert with duplicate key",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+				data.NewData(2, "two"),
+				data.NewData(3, "three"),
+			},
+			key:   2,
+			value: "duplicate",
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Nil(err)
+				is.Equal(sa.GetLenght(), int32(4))
+				is.True(sa.IsSorted())
+				v, err := sa.Find(2)
+				is.Equal(v, "two")
+				is.Nil(err)
+			},
+		},
+		{
+			name: "insert empty key",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+			},
+			key:   0,
+			value: "zero",
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Error(err, fmt.Errorf("empty key"))
+				is.Equal(sa.GetLenght(), int32(1))
+				is.Equal(sa.GetCapacity(), int32(2))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sa := NewSortedArray[int, string](tt.setData...)
+			err := sa.Insert(tt.key, tt.value)
+			tt.want(sa, err)
+		})
+	}
+}
+
+func TestSortedArray_Delete(t *testing.T) {
+	is := assert.New(t)
+
+	tests := []struct {
+		name    string
+		setData []*data.Data[int, string]
+		key     int
+		want    func(*SortedArray[int, string], error)
+	}{
+		{
+			name: "delete existing key",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+				data.NewData(2, "two"),
+				data.NewData(3, "three"),
+			},
+			key: 2,
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Nil(err)
+				v, err := sa.Find(2)
+				is.Empty(v)
+				is.Equal(err.Error(), "key: 2 not found")
+				is.Equal(sa.GetLenght(), int32(2))
+				is.True(sa.IsSorted())
+			},
+		},
+		{
+			name: "delete non-existing key",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+				data.NewData(2, "two"),
+				data.NewData(3, "three"),
+			},
+			key: 4,
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Error(err)
+				is.Equal(err.Error(), "key 4 not found in sorted array")
+				is.Equal(sa.GetLenght(), int32(3))
+				is.True(sa.IsSorted())
+			},
+		},
+		{
+			name:    "delete from empty array",
+			setData: []*data.Data[int, string]{},
+			key:     1,
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Error(err)
+				is.Equal(err.Error(), "key 1 not found in sorted array")
+				is.Equal(sa.GetLenght(), int32(0))
+				is.True(sa.IsSorted())
+			},
+		},
+		{
+			name: "delete last element",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+				data.NewData(3, "three"),
+			},
+			key: 3,
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Nil(err)
+				v, err := sa.Find(3)
+				is.Empty(v)
+				is.Equal(err.Error(), "key: 3 not found")
+				is.Equal(sa.GetLenght(), int32(1))
+				is.True(sa.IsSorted())
+			},
+		},
+		{
+			name: "delete first element",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+				data.NewData(2, "two"),
+				data.NewData(3, "three"),
+				data.NewData(4, "four"),
+			},
+			key: 1,
+			want: func(sa *SortedArray[int, string], err error) {
+				is.Nil(err)
+				v, err := sa.Find(1)
+				is.Empty(v)
+				is.Equal(err.Error(), "key: 1 not found")
+				is.Equal(sa.GetLenght(), int32(3))
+				is.True(sa.IsSorted())
+				is.Equal(sa.array[0].GetValue(), "two")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sa := NewSortedArray[int, string](tt.setData...)
+			_, err := sa.Delete(tt.key)
+			tt.want(sa, err)
 		})
 	}
 }

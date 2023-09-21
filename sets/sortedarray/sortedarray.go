@@ -99,7 +99,54 @@ func (sa *SortedArray[K, V]) Find(key K) (V, error) {
 	return *new(V), fmt.Errorf("key: %v not found", key)
 }
 
-func (sa *SortedArray[K, V]) FindMin(key K) V {
+func (sa *SortedArray[K, V]) Insert(key K, value V) error {
+	if key == *new(K) {
+		return fmt.Errorf("empty key")
+	}
+
+	item := data.NewData(key, value)
+	sa.array[sa.lenght] = item
+	sa.lenght++
+	sort[K, V](sa.array[:sa.lenght])
+
+	if sa.lenght == sa.capacity {
+		newArr := make([]*data.Data[K, V], 2*sa.capacity)
+		copy(newArr, sa.array)
+		sa.array = newArr
+		sa.capacity = int32(len(newArr))
+	}
+	return nil
+}
+
+func (sa *SortedArray[K, V]) Delete(key K) (V, error) {
+	index, err := sa.getIndex(key)
+	if err != nil {
+		return *new(V), err
+	}
+
+	output := sa.array[index]
+	sa.array[index] = nil
+	sa.shift(index)
+	sa.lenght--
+	return output.Value, nil
+}
+
+func (sa *SortedArray[K, V]) getIndex(key K) (int32, error) {
+	for i := int32(0); i < sa.GetLenght(); i++ {
+		if sa.array[i].GetKey() == key {
+			return i, nil
+		}
+	}
+	return -1, fmt.Errorf("key %v not found in sorted array", key)
+}
+
+func (sa *SortedArray[K, V]) shift(index int32) {
+	for i := index; i < sa.GetLenght(); i++ {
+		sa.array[i] = sa.array[i+1]
+	}
+}
+
+func (sa *SortedArray[K, V]) FindMin() V {
 	return sa.array[0].GetValue()
 }
 
@@ -115,6 +162,15 @@ func (sa *SortedArray[K, V]) GetCapacity() int32 {
 	return sa.capacity
 }
 
-func (da *SortedArray[K, V]) IsEmpty() bool {
-	return da.lenght == 0
+func (sa *SortedArray[K, V]) IsEmpty() bool {
+	return sa.lenght == 0
+}
+
+func (sa *SortedArray[K, V]) IsSorted() bool {
+	for i := int32(0); i < sa.GetLenght()-1; i++ {
+		if sa.array[i].Key > sa.array[i+1].Key {
+			return false
+		}
+	}
+	return true
 }
