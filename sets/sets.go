@@ -7,7 +7,7 @@ import (
 
 type Seter[K constraints.Ordered, V any] interface {
 	Find(K) V
-	Insert(key K, value V) error
+	Insert(K, V) error
 	Delete(K) (V, error)
 	InOrder() (*data.Data[K, V], error)
 	FindMin() V
