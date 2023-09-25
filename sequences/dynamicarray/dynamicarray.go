@@ -60,6 +60,7 @@ func (da *DynamicArray[T]) Contains(data T) bool {
 	return false
 }
 
+// TODO: confirm if this should change the order of things.
 func (da *DynamicArray[T]) Insert(index int32, data T) error {
 	if index >= da.capacity {
 		newArray := make([]T, 2*da.capacity)
