@@ -73,41 +73,21 @@ func merge[K constraints.Ordered, V any](arrOne, arrTwo []*data.Data[K, V]) []*d
 	return sorted
 }
 
-func (sa *SortedArray[K, V]) Find(key K) (V, error) {
-	if sa.GetLenght() == 0 {
-		return *new(V), fmt.Errorf("empty array")
-	}
-
-	min := int32(0)
-	max := sa.GetLenght() - 1
-
-	for min <= max {
-		mid := (min + max) / 2
-
-		if sa.array[mid].GetKey() == key {
-			return sa.array[mid].GetValue(), nil
-		}
-
-		if sa.array[mid].GetKey() > key {
-			max = mid - 1
-			continue
-		}
-
-		min = mid + 1
-	}
-
-	return *new(V), fmt.Errorf("key: %v not found", key)
-}
-
 func (sa *SortedArray[K, V]) Insert(key K, value V) error {
 	if key == *new(K) {
 		return fmt.Errorf("empty key")
 	}
 
+	index, err := sa.getIndex(key)
+	if err == nil {
+		sa.array[index] = data.NewData(key, value)
+		return nil
+	}
+
 	item := data.NewData(key, value)
 	sa.array[sa.lenght] = item
 	sa.lenght++
-	sort[K, V](sa.array[:sa.lenght])
+	sort(sa.array[:sa.lenght])
 
 	if sa.lenght == sa.capacity {
 		newArr := make([]*data.Data[K, V], 2*sa.capacity)
@@ -132,12 +112,29 @@ func (sa *SortedArray[K, V]) Delete(key K) (V, error) {
 }
 
 func (sa *SortedArray[K, V]) getIndex(key K) (int32, error) {
-	for i := int32(0); i < sa.GetLenght(); i++ {
-		if sa.array[i].GetKey() == key {
-			return i, nil
-		}
+	if sa.GetLenght() == 0 {
+		return -1, fmt.Errorf("empty array")
 	}
-	return -1, fmt.Errorf("key %v not found in sorted array", key)
+
+	min := int32(0)
+	max := sa.GetLenght() - 1
+
+	for min <= max {
+		mid := (min + max) / 2
+
+		if sa.array[mid].GetKey() == key {
+			return mid, nil
+		}
+
+		if sa.array[mid].GetKey() > key {
+			max = mid - 1
+			continue
+		}
+
+		min = mid + 1
+	}
+
+	return -1, fmt.Errorf("key: %v not found", key)
 }
 
 func (sa *SortedArray[K, V]) shift(index int32) {
@@ -146,12 +143,30 @@ func (sa *SortedArray[K, V]) shift(index int32) {
 	}
 }
 
+func (sa *SortedArray[K, V]) Find(key K) (V, error) {
+	index, err := sa.getIndex(key)
+	if err != nil {
+		return *new(V), err
+	}
+
+	return sa.array[index].GetValue(), nil
+}
+
 func (sa *SortedArray[K, V]) FindMin() V {
 	return sa.array[0].GetValue()
 }
 
 func (sa *SortedArray[K, V]) FindMax() V {
 	return sa.array[sa.GetLenght()-1].GetValue()
+}
+
+func (sa *SortedArray[K, V]) FindNext(key K) (V, error) {
+	index, err := sa.getIndex(key)
+	if err != nil {
+		return *new(V), err
+	}
+
+	return sa.array[index+1].Value, nil
 }
 
 func (sa *SortedArray[K, V]) GetLenght() int32 {

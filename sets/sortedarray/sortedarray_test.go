@@ -162,10 +162,10 @@ func TestSortedArray_Insert(t *testing.T) {
 			value: "duplicate",
 			want: func(sa *SortedArray[int, string], err error) {
 				is.Nil(err)
-				is.Equal(sa.GetLenght(), int32(4))
+				is.Equal(sa.GetLenght(), int32(3))
 				is.True(sa.IsSorted())
 				v, err := sa.Find(2)
-				is.Equal(v, "two")
+				is.Equal(v, "duplicate")
 				is.Nil(err)
 			},
 		},
@@ -229,7 +229,7 @@ func TestSortedArray_Delete(t *testing.T) {
 			key: 4,
 			want: func(sa *SortedArray[int, string], err error) {
 				is.Error(err)
-				is.Equal(err.Error(), "key 4 not found in sorted array")
+				is.Equal(err.Error(), "key: 4 not found")
 				is.Equal(sa.GetLenght(), int32(3))
 				is.True(sa.IsSorted())
 			},
@@ -240,7 +240,7 @@ func TestSortedArray_Delete(t *testing.T) {
 			key:     1,
 			want: func(sa *SortedArray[int, string], err error) {
 				is.Error(err)
-				is.Equal(err.Error(), "key 1 not found in sorted array")
+				is.Equal(err.Error(), "empty array")
 				is.Equal(sa.GetLenght(), int32(0))
 				is.True(sa.IsSorted())
 			},
