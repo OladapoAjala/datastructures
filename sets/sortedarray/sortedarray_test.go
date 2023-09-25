@@ -73,7 +73,9 @@ func TestSortedArray_Find(t *testing.T) {
 			},
 			want: func(got string, err error) {
 				is.Nil(err)
-				is.Equal(got, testSortedArr.FindMax())
+				max, err := testSortedArr.FindMax()
+				is.Nil(err)
+				is.Equal(got, max)
 			},
 		},
 		{
@@ -147,8 +149,12 @@ func TestSortedArray_Insert(t *testing.T) {
 				v, err := sa.Find(2)
 				is.Equal(v, "two")
 				is.Nil(err)
-				is.Equal(sa.FindMin(), "one")
-				is.Equal(sa.FindMax(), "three")
+				min, err := sa.FindMin()
+				is.Nil(err)
+				is.Equal(min, "one")
+				max, err := sa.FindMax()
+				is.Nil(err)
+				is.Equal(max, "three")
 			},
 		},
 		{
@@ -287,6 +293,102 @@ func TestSortedArray_Delete(t *testing.T) {
 			sa := NewSortedArray[int, string](tt.setData...)
 			_, err := sa.Delete(tt.key)
 			tt.want(sa, err)
+		})
+	}
+}
+
+func TestSortedArray_FindMin_FindMax(t *testing.T) {
+	is := assert.New(t)
+
+	tests := []struct {
+		name    string
+		setData []*data.Data[int, string]
+		test    func(*SortedArray[int, string])
+	}{
+		{
+			name:    "find min & max in an empty array",
+			setData: []*data.Data[int, string]{},
+			test: func(sa *SortedArray[int, string]) {
+				min, err := sa.FindMin()
+				is.Error(err, fmt.Errorf("empty array"))
+				is.Equal(min, "")
+
+				max, err := sa.FindMax()
+				is.Error(err, fmt.Errorf("empty array"))
+				is.Equal(max, "")
+			},
+		},
+		{
+			name: "find min & max in a non-empty array",
+			setData: []*data.Data[int, string]{
+				data.NewData(1, "one"),
+				data.NewData(3, "three"),
+				data.NewData(2, "two"),
+			},
+			test: func(sa *SortedArray[int, string]) {
+				min, err := sa.FindMin()
+				is.Nil(err)
+				is.Equal(min, "one")
+
+				max, err := sa.FindMax()
+				is.Nil(err)
+				is.Equal(max, "three")
+			},
+		},
+		{
+			name: "find min & max in an array  single element array",
+			setData: []*data.Data[int, string]{
+				data.NewData(5, "five"),
+			},
+			test: func(sa *SortedArray[int, string]) {
+				min, err := sa.FindMin()
+				is.Nil(err)
+				max, err := sa.FindMax()
+				is.Nil(err)
+
+				is.Equal(min, max)
+			},
+		},
+		{
+			name: "find min & max in an array with duplicate keys",
+			setData: []*data.Data[int, string]{
+				data.NewData(5, "five"),
+				data.NewData(1, "duplicate_one"),
+				data.NewData(3, "three"),
+				data.NewData(5, "duplicate_five"),
+				data.NewData(1, "one"),
+			},
+			test: func(sa *SortedArray[int, string]) {
+				min, err := sa.FindMin()
+				is.Nil(err)
+				is.Equal(min, "duplicate_one")
+				max, err := sa.FindMax()
+				is.Nil(err)
+				is.Equal(max, "duplicate_five")
+			},
+		},
+		{
+			name: "find min & max in an array with negative keys",
+			setData: []*data.Data[int, string]{
+				data.NewData(-5, "minusfive"),
+				data.NewData(-1, "minusone"),
+				data.NewData(-10, "minusten"),
+			},
+			test: func(sa *SortedArray[int, string]) {
+				min, err := sa.FindMin()
+				is.Nil(err)
+				is.Equal(min, "minusten")
+				max, err := sa.FindMax()
+				is.Nil(err)
+				is.Equal(max, "minusone")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sa := NewSortedArray[int, string](tt.setData...)
+			tt.test(sa)
 		})
 	}
 }

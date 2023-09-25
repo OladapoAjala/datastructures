@@ -6,13 +6,13 @@ import (
 )
 
 type Seter[K constraints.Ordered, V any] interface {
-	Find(K) V
+	Find(K) (V, error)
 	Insert(K, V) error
 	Delete(K) (V, error)
-	InOrder() (*data.Data[K, V], error)
-	FindMin() V
-	FindMax() V
-	FindNext(K) V
-	FindPrev(K) V
+	InOrder() ([]*data.Data[K, V], error)
+	FindMin() (V, error)
+	FindMax() (V, error)
+	FindNext(K) (V, error)
+	FindPrev(K) (V, error)
 	Size() int32
 }

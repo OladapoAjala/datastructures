@@ -18,7 +18,7 @@ type ISortedArray[K constraints.Ordered, V any] interface {
 	sets.Seter[K, V]
 }
 
-// var _ ISortedArray[int, string] = new(SortedArray[int, string])
+var _ ISortedArray[int, string] = new(SortedArray[int, string])
 
 func NewSortedArray[K constraints.Ordered, V any](values ...*data.Data[K, V]) *SortedArray[K, V] {
 	sa := new(SortedArray[K, V])
@@ -148,16 +148,21 @@ func (sa *SortedArray[K, V]) Find(key K) (V, error) {
 	if err != nil {
 		return *new(V), err
 	}
-
 	return sa.array[index].GetValue(), nil
 }
 
-func (sa *SortedArray[K, V]) FindMin() V {
-	return sa.array[0].GetValue()
+func (sa *SortedArray[K, V]) FindMin() (V, error) {
+	if sa.IsEmpty() {
+		return *new(V), fmt.Errorf("empty array")
+	}
+	return sa.array[0].GetValue(), nil
 }
 
-func (sa *SortedArray[K, V]) FindMax() V {
-	return sa.array[sa.GetLenght()-1].GetValue()
+func (sa *SortedArray[K, V]) FindMax() (V, error) {
+	if sa.IsEmpty() {
+		return *new(V), fmt.Errorf("empty array")
+	}
+	return sa.array[sa.GetLenght()-1].GetValue(), nil
 }
 
 func (sa *SortedArray[K, V]) FindNext(key K) (V, error) {
@@ -165,8 +170,19 @@ func (sa *SortedArray[K, V]) FindNext(key K) (V, error) {
 	if err != nil {
 		return *new(V), err
 	}
-
 	return sa.array[index+1].Value, nil
+}
+
+func (sa *SortedArray[K, V]) FindPrev(key K) (V, error) {
+	index, err := sa.getIndex(key)
+	if err != nil {
+		return *new(V), err
+	}
+	return sa.array[index-1].Value, nil
+}
+
+func (sa *SortedArray[K, V]) InOrder() ([]*data.Data[K, V], error) {
+	return sa.array, nil
 }
 
 func (sa *SortedArray[K, V]) GetLenght() int32 {
@@ -188,4 +204,8 @@ func (sa *SortedArray[K, V]) IsSorted() bool {
 		}
 	}
 	return true
+}
+
+func (sa *SortedArray[K, V]) Size() int32 {
+	return sa.GetLenght()
 }
