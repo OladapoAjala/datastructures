@@ -3,8 +3,8 @@ package linkedlist
 import (
 	"fmt"
 
-	"github.com/OladapoAjala/datastructures/node"
 	"github.com/OladapoAjala/datastructures/sequences"
+	"github.com/OladapoAjala/datastructures/sequences/node"
 )
 
 type LinkedList[T comparable] struct {
