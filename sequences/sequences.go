@@ -1,5 +1,6 @@
 package sequences
 
+// NOTE: insert_*/delete_* operations change the rank of all items after the modified item.
 type Sequencer[T any] interface {
 	// New[S types.Sequences[T]]() (S, error)
 	GetData(int32) (T, error)
