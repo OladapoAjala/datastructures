@@ -2,57 +2,43 @@ package hashtable
 
 import (
 	"github.com/OladapoAjala/datastructures/sequences/linkedlist"
+	"github.com/OladapoAjala/datastructures/sets"
+	"github.com/OladapoAjala/datastructures/sets/data"
 	"golang.org/x/exp/constraints"
 )
 
-type Entry[K constraints.Ordered] struct {
-	hash  int
-	key   K
-	value any
+type HashTable[K constraints.Ordered] struct {
+	size  int32
+	Table []*linkedlist.LinkedList[*data.Entry[K, any]]
 }
 
-func NewEntry[K constraints.Ordered](key K, value any) *Entry[K] {
-	entry := &Entry[K]{
-		key:   key,
-		value: value,
+type HashTabler[K constraints.Ordered, V any] interface {
+	sets.Seter[K, V]
+}
+
+// var _ HashTabler[string, any] = new(HashTable[string, data.Entry[string]])
+
+func NewHashTable[K constraints.Ordered]() *HashTable[K] {
+	table := make([]*linkedlist.LinkedList[*data.Entry[K, any]], 10)
+	return &HashTable[K]{
+		size:  int32(len(table)),
+		Table: table,
 	}
-	// keyBytes := []byte(key)
-	// entry.hash = utils.FNVHash(key)
-	return entry
 }
 
-func (e *Entry[K]) equal(val *Entry[K]) bool {
-	if e.hash != val.hash {
-		return false
+func (h *HashTable[K]) Insert(key K, value any) error {
+	entry := data.NewEntry(key, value)
+	pos := entry.GetHash() % uint32(h.size)
+
+	if h.Table[pos] != nil {
+		return h.Table[pos].InsertLast(entry)
 	}
-	return e.key == val.key
-}
 
-type HashTable[K constraints.Ordered, V Entry[K]] struct {
-	size  int
-	Table []*linkedlist.LinkedList[string]
-}
-
-type IHashTable[K constraints.Ordered, V any] interface {
-	Insert(K, V) error
-	LookUp(K) (V, error)
-	Remove(K) error
-}
-
-var _ IHashTable[string, any] = new(HashTable[string, Entry[string]])
-
-func NewHashTable[K constraints.Ordered, V any]() *HashTable[K, Entry[K]] {
+	h.Table[pos] = linkedlist.NewList(entry)
 	return nil
 }
 
-func (h *HashTable[K, V]) Insert(key K, value any) error {
-	// entry := NewEntry[K](key, value)
-	// pos := entry.hash % h.size
-	// h.Table[pos] = linkedlist.NewList[*V](entry)
-	return nil
-}
-
-func (h *HashTable[K, V]) LookUp(key K) (any, error) {
+func (h *HashTable[K]) Find(key K) (any, error) {
 	/*
 		1. compute hash with key
 		2. compute table index with hash
@@ -62,6 +48,10 @@ func (h *HashTable[K, V]) LookUp(key K) (any, error) {
 	return nil, nil
 }
 
-func (h *HashTable[K, V]) Remove(key K) error {
+func (h *HashTable[K]) Delete(key K) error {
 	return nil
+}
+
+func (h *HashTable[K]) Size() int32 {
+	return h.size
 }
