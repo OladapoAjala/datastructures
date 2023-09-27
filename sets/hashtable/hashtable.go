@@ -46,6 +46,10 @@ func (h *HashTable[K]) Insert(key K, value any) error {
 
 func (h *HashTable[K]) contains(entry *data.Entry[K], pos uint32) bool {
 	ll := h.Table[pos]
+	if ll == nil {
+		return false
+	}
+
 	for it := ll.Head; it != nil; it = it.Next {
 		if entry.Equal(it.Data) {
 			return true
@@ -75,7 +79,16 @@ func (h *HashTable[K]) Delete(key K) error {
 		return fmt.Errorf("key %v not found in hashtable", key)
 	}
 
-	return h.Table[pos].DeleteFirst()
+	err := h.Table[pos].DeleteFirst()
+	if err != nil {
+		return fmt.Errorf("key %v not found in hashtable", key)
+	}
+
+	if h.Table[pos].Size() == 0 {
+		h.Table[pos] = nil
+	}
+
+	return nil
 }
 
 func (h *HashTable[K]) Size() int32 {

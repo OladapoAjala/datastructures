@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/OladapoAjala/datastructures/sets/data"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -148,6 +149,106 @@ func TestHashTable_Find(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value, err := hashTable.Find(tt.searchKey)
 			tt.want(value, err)
+		})
+	}
+}
+
+func Test_Delete(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name  string
+		setup func(ht *HashTable[string])
+		args  args
+		want  func(*HashTable[string], error)
+	}{
+		{
+			name: "delete from empty hashtable",
+			args: args{
+				key: "key1",
+			},
+			want: func(ht *HashTable[string], err error) {
+				is.Error(fmt.Errorf("key nonexistent not found in hashtable"))
+			},
+		},
+		{
+			name: "delete existing key",
+			setup: func(ht *HashTable[string]) {
+				err := ht.Insert("key1", "value1")
+				is.Nil(err)
+			},
+			args: args{
+				key: "key1",
+			},
+			want: func(ht *HashTable[string], err error) {
+				is.Nil(err)
+				tmp := data.NewEntry("key1", "value1")
+				pos := tmp.GetHash() % uint32(5)
+				is.False(ht.contains(tmp, pos))
+			},
+		},
+		{
+			name: "delete non-existent key",
+			setup: func(ht *HashTable[string]) {
+				_ = ht.Insert("key1", "value1")
+			},
+			args: args{
+				key: "nonexistent",
+			},
+			want: func(ht *HashTable[string], err error) {
+				is.Error(fmt.Errorf("key nonexistent not found in hashtable"))
+			},
+		},
+		{
+			name: "delete key with collision",
+			setup: func(ht *HashTable[string]) {
+				err := ht.Insert("key2", true)
+				is.Nil(err)
+				err = ht.Insert("key2", 100)
+				is.Nil(err)
+			},
+			args: args{
+				key: "key2",
+			},
+			want: func(ht *HashTable[string], err error) {
+				is.Nil(err)
+
+				tmp := data.NewEntry("key2", true)
+				pos := tmp.GetHash() % uint32(5)
+				is.False(ht.contains(tmp, pos))
+
+				tmp = data.NewEntry("key2", 100)
+				pos = tmp.GetHash() % uint32(5)
+				is.True(ht.contains(tmp, pos))
+			},
+		},
+		{
+			name: "delete last key in collision list",
+			args: args{
+				key: "key2",
+			},
+			want: func(ht *HashTable[string], err error) {
+				is.Nil(err)
+
+				tmp := data.NewEntry("key2", 100)
+				pos := tmp.GetHash() % uint32(5)
+				is.False(ht.contains(tmp, pos))
+			},
+		},
+	}
+
+	hashTable := NewHashTable[string](5)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(hashTable)
+			}
+
+			err := hashTable.Delete(tt.args.key)
+			tt.want(hashTable, err)
 		})
 	}
 }
