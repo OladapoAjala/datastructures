@@ -31,6 +31,7 @@ func NewHashTable[K constraints.Ordered](capacity int32) *HashTable[K] {
 
 	return &HashTable[K]{
 		capacity:  capacity,
+		size:      0,
 		threshold: int32(threshold),
 		Table:     table,
 	}
@@ -43,15 +44,13 @@ func (h *HashTable[K]) Insert(key K, value any) error {
 	entry := data.NewEntry(key, value)
 	pos := entry.GetHash() % uint32(h.capacity)
 
-	if h.Table[pos] == nil {
-		h.Table[pos] = linkedlist.NewList(entry)
-		h.size++
+	if isPresent, entry := h.contains(entry, pos); isPresent {
+		entry.Value = value
 		return nil
 	}
 
-	if isTrue, entry := h.contains(entry, pos); isTrue {
-		entry.Value = value
-		return nil
+	if h.Table[pos] == nil {
+		h.Table[pos] = linkedlist.NewList[*data.Entry[K]]()
 	}
 
 	err := h.Table[pos].InsertLast(entry)
@@ -59,6 +58,39 @@ func (h *HashTable[K]) Insert(key K, value any) error {
 		return err
 	}
 	h.size++
+
+	if h.size > h.threshold {
+		return h.resize()
+	}
+	return nil
+}
+
+func (h *HashTable[K]) resize() error {
+	capacity := h.capacity * 2
+	ht := NewHashTable[K](capacity)
+
+	for _, ll := range h.Table {
+		if ll == nil {
+			continue
+		}
+
+		for i := int32(0); i < ll.Size(); i++ {
+			node, err := ll.GetNode(i)
+			if err != nil {
+				return fmt.Errorf("error resizing table %w", err)
+			}
+
+			err = ht.Insert(node.Data.GetKey(), node.Data.GetValue())
+			if err != nil {
+				return fmt.Errorf("error resizing table %w", err)
+			}
+		}
+	}
+
+	h.capacity = ht.capacity
+	h.size = ht.size
+	h.threshold = ht.threshold
+	h.Table = ht.Table
 	return nil
 }
 
@@ -77,7 +109,9 @@ func (h *HashTable[K]) contains(entry *data.Entry[K], pos uint32) (bool, *data.E
 }
 
 func (h *HashTable[K]) Find(key K) (any, error) {
-	// Check for invalid keys
+	if key == *new(K) {
+		return nil, fmt.Errorf("invalid key")
+	}
 	hasher := fnv.New32()
 	hasher.Write([]byte(data.ToString(key)))
 	pos := hasher.Sum32() % uint32(h.capacity)
@@ -109,6 +143,7 @@ func (h *HashTable[K]) Delete(key K) error {
 		return fmt.Errorf("key %v not found in hashtable", key)
 	}
 
+	h.size--
 	if h.Table[pos].Size() == 0 {
 		h.Table[pos] = nil
 	}
@@ -133,6 +168,14 @@ func (h *HashTable[K]) getIndex(key K, ll *linkedlist.LinkedList[*data.Entry[K]]
 	return -1, fmt.Errorf("key not found")
 }
 
-func (h *HashTable[K]) Size() int32 {
+func (h *HashTable[K]) GetSize() int32 {
+	return h.size
+}
+
+func (h *HashTable[K]) GetCapacity() int32 {
 	return h.capacity
+}
+
+func (h *HashTable[K]) GetThreshold() int32 {
+	return h.threshold
 }

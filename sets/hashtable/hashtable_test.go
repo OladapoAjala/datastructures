@@ -29,9 +29,9 @@ func Test_Insert(t *testing.T) {
 			},
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
-				is.Equal(ht.Table[3].Head.Data.Key, "key1")
-				is.Equal(ht.Table[3].Head.Data.Value, "value1")
-				is.Nil(ht.Table[3].Head.Next)
+				is.Equal(ht.Table[1].Head.Data.Key, "key1")
+				is.Equal(ht.Table[1].Head.Data.Value, "value1")
+				is.Nil(ht.Table[1].Head.Next)
 			},
 		},
 		{
@@ -42,53 +42,57 @@ func Test_Insert(t *testing.T) {
 			},
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
-				is.Equal(ht.Table[3].Head.Data.Key, "key1")
-				is.Equal(ht.Table[3].Head.Data.Value, true)
-				is.Nil(ht.Table[3].Head.Next)
+				is.Equal(ht.Table[1].Head.Data.Key, "key1")
+				is.Equal(ht.Table[1].Head.Data.Value, true)
+				is.Nil(ht.Table[1].Head.Next)
 			},
 		},
 		{
 			name: "insert multiple key-value pairs",
 			args: args{
-				key:   "key2",
+				key:   "key0",
 				value: "value2",
 			},
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
-				is.Equal(ht.Table[0].Head.Data.Key, "key2")
+				is.Equal(ht.Table[0].Head.Data.Key, "key0")
 				is.Equal(ht.Table[0].Head.Data.Value, "value2")
 				is.Nil(ht.Table[0].Head.Next)
 			},
 		},
 		{
-			name: "insert key-value pairs with different data types",
+			name: "insert key-value pairs with different data types and resize table",
 			args: args{
 				key:   "key3",
-				value: "100",
+				value: 100,
 			},
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
-				is.Equal(ht.Table[1].Head.Data.Key, "key3")
-				is.Equal(ht.Table[1].Head.Data.Value, "100")
-				is.Nil(ht.Table[1].Head.Next)
+				is.Equal(ht.Table[5].Head.Data.Key, "key3")
+				is.Equal(ht.Table[5].Head.Data.Value, 100)
+				is.Nil(ht.Table[5].Head.Next)
+
+				is.EqualValues(ht.GetCapacity(), 6)
+				is.EqualValues(ht.GetSize(), 3)
+				is.EqualValues(ht.GetThreshold(), 4)
 			},
 		},
 		{
 			name: "insert already existing key-value pairs",
 			args: args{
 				key:   "key3",
-				value: "100",
+				value: 100,
 			},
 			want: func(ht *HashTable[string], err error) {
 				is.Error(fmt.Errorf("key: key3, value: 100 already in hash table"))
-				is.Equal(ht.Table[1].Head.Data.Key, "key3")
-				is.Equal(ht.Table[1].Head.Data.Value, "100")
-				is.Nil(ht.Table[1].Head.Next)
+				is.Equal(ht.Table[5].Head.Data.Key, "key3")
+				is.Equal(ht.Table[5].Head.Data.Value, 100)
+				is.Nil(ht.Table[5].Head.Next)
 			},
 		},
 	}
 
-	hashTable := NewHashTable[string](10)
+	hashTable := NewHashTable[string](3)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := hashTable.Insert(tt.args.key, tt.args.value)
