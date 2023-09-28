@@ -35,7 +35,7 @@ func Test_Insert(t *testing.T) {
 			},
 		},
 		{
-			name: "insert a duplicate key",
+			name: "replace value of previous key",
 			args: args{
 				key:   "key1",
 				value: true,
@@ -43,9 +43,8 @@ func Test_Insert(t *testing.T) {
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
 				is.Equal(ht.Table[3].Head.Data.Key, "key1")
-				is.Equal(ht.Table[3].Head.Data.Value, "value1")
-				is.Equal(ht.Table[3].Head.Next.Data.Key, "key1")
-				is.Equal(ht.Table[3].Head.Next.Data.Value, true)
+				is.Equal(ht.Table[3].Head.Data.Value, true)
+				is.Nil(ht.Table[3].Head.Next)
 			},
 		},
 		{
@@ -186,14 +185,16 @@ func Test_Delete(t *testing.T) {
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
 				tmp := data.NewEntry("key1", "value1")
-				pos := tmp.GetHash() % uint32(5)
-				is.False(ht.contains(tmp, pos))
+				pos := tmp.GetHash() % uint32(3)
+				isPresent, entry := ht.contains(tmp, pos)
+				is.Nil(entry)
+				is.False(isPresent)
 			},
 		},
 		{
 			name: "delete non-existent key",
 			setup: func(ht *HashTable[string]) {
-				_ = ht.Insert("key1", "value1")
+				_ = ht.Insert("key2", "value2")
 			},
 			args: args{
 				key: "nonexistent",
@@ -205,9 +206,9 @@ func Test_Delete(t *testing.T) {
 		{
 			name: "delete key with collision",
 			setup: func(ht *HashTable[string]) {
-				err := ht.Insert("key2", true)
+				err := ht.Insert("key1", 100)
 				is.Nil(err)
-				err = ht.Insert("key2", 100)
+				err = ht.Insert("key2", true)
 				is.Nil(err)
 			},
 			args: args{
@@ -217,30 +218,37 @@ func Test_Delete(t *testing.T) {
 				is.Nil(err)
 
 				tmp := data.NewEntry("key2", true)
-				pos := tmp.GetHash() % uint32(5)
-				is.False(ht.contains(tmp, pos))
+				pos := tmp.GetHash() % uint32(3)
+				isPresent, entry := ht.contains(tmp, pos)
+				is.Nil(entry)
+				is.False(isPresent)
 
-				tmp = data.NewEntry("key2", 100)
-				pos = tmp.GetHash() % uint32(5)
-				is.True(ht.contains(tmp, pos))
+				tmp = data.NewEntry("key1", 100)
+				pos = tmp.GetHash() % uint32(3)
+				isPresent, entry = ht.contains(tmp, pos)
+				is.Equal(entry.Key, "key1")
+				is.Equal(entry.Value, 100)
+				is.True(isPresent)
 			},
 		},
 		{
 			name: "delete last key in collision list",
 			args: args{
-				key: "key2",
+				key: "key1",
 			},
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
 
-				tmp := data.NewEntry("key2", 100)
-				pos := tmp.GetHash() % uint32(5)
-				is.False(ht.contains(tmp, pos))
+				tmp := data.NewEntry("key1", 100)
+				pos := tmp.GetHash() % uint32(3)
+				isPresent, entry := ht.contains(tmp, pos)
+				is.Nil(entry)
+				is.False(isPresent)
 			},
 		},
 	}
 
-	hashTable := NewHashTable[string](5)
+	hashTable := NewHashTable[string](3)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {

@@ -26,7 +26,7 @@ func (e *Entry[K]) Equal(val *Entry[K]) bool {
 	if e.hash != val.hash {
 		return false
 	}
-	return e.GetValue() == val.GetValue()
+	return e.GetKey() == val.GetKey()
 }
 
 func (e *Entry[K]) GetHash() uint32 {
