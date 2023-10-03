@@ -14,7 +14,7 @@ type HashTable[K constraints.Ordered] struct {
 	capacity  int32
 	size      int32
 	threshold int32
-	Table     []*linkedlist.LinkedList[*data.Entry[K]]
+	Table     []*linkedlist.LinkedList[*data.Data[K, any]]
 }
 
 type HashTabler[K constraints.Ordered] interface {
@@ -23,10 +23,10 @@ type HashTabler[K constraints.Ordered] interface {
 
 const MAX_LOAD_FACTOR float32 = 0.80
 
-// var _ HashTabler[string, any] = new(HashTable[string, data.Entry[string]])
+// var _ HashTabler[string, any] = new(HashTable[string, data.data[string]])
 
 func NewHashTable[K constraints.Ordered](capacity int32) *HashTable[K] {
-	table := make([]*linkedlist.LinkedList[*data.Entry[K]], capacity)
+	table := make([]*linkedlist.LinkedList[*data.Data[K, any]], capacity)
 	threshold := float32(capacity) * MAX_LOAD_FACTOR
 
 	return &HashTable[K]{
@@ -41,19 +41,19 @@ func (h *HashTable[K]) Insert(key K, value any) error {
 	if key == *new(K) {
 		return fmt.Errorf("invalid key")
 	}
-	entry := data.NewEntry(key, value)
-	pos := entry.GetHash() % uint32(h.capacity)
+	item := data.NewDataWithHash(key, value)
+	pos := item.GetHash() % uint32(h.capacity)
 
-	if isPresent, entry := h.contains(entry, pos); isPresent {
-		entry.Value = value
+	if isPresent, prev := h.contains(item, pos); isPresent {
+		prev.Value = value
 		return nil
 	}
 
 	if h.Table[pos] == nil {
-		h.Table[pos] = linkedlist.NewList[*data.Entry[K]]()
+		h.Table[pos] = linkedlist.NewList[*data.Data[K, any]]()
 	}
 
-	err := h.Table[pos].InsertLast(entry)
+	err := h.Table[pos].InsertLast(item)
 	if err != nil {
 		return err
 	}
@@ -94,14 +94,14 @@ func (h *HashTable[K]) resize() error {
 	return nil
 }
 
-func (h *HashTable[K]) contains(entry *data.Entry[K], pos uint32) (bool, *data.Entry[K]) {
+func (h *HashTable[K]) contains(input *data.Data[K, any], pos uint32) (bool, *data.Data[K, any]) {
 	ll := h.Table[pos]
 	if ll == nil {
 		return false, nil
 	}
 
 	for it := ll.Head; it != nil; it = it.Next {
-		if entry.Equal(it.Data) {
+		if input.Equal(it.Data) {
 			return true, it.Data
 		}
 	}
@@ -151,15 +151,15 @@ func (h *HashTable[K]) Delete(key K) error {
 	return nil
 }
 
-func (h *HashTable[K]) getIndex(key K, ll *linkedlist.LinkedList[*data.Entry[K]]) (int32, error) {
+func (h *HashTable[K]) getIndex(key K, ll *linkedlist.LinkedList[*data.Data[K, any]]) (int32, error) {
 	if ll.IsEmpty() {
 		return -1, fmt.Errorf("empty list")
 	}
 
-	entry := data.NewEntry[K](key, nil)
+	data := data.NewDataWithHash[K, any](key, nil)
 	var index int32 = 0
 	for it := ll.Head; it != nil; it = it.Next {
-		if entry.Equal(it.Data) {
+		if data.Equal(it.Data) {
 			return index, nil
 		}
 		index++

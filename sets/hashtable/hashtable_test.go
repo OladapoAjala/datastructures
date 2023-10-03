@@ -188,7 +188,7 @@ func Test_Delete(t *testing.T) {
 			},
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
-				tmp := data.NewEntry("key1", "value1")
+				tmp := data.NewDataWithHash[string, any]("key1", "value1")
 				pos := tmp.GetHash() % uint32(3)
 				isPresent, entry := ht.contains(tmp, pos)
 				is.Nil(entry)
@@ -221,13 +221,13 @@ func Test_Delete(t *testing.T) {
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
 
-				tmp := data.NewEntry("key2", true)
+				tmp := data.NewDataWithHash[string, any]("key2", true)
 				pos := tmp.GetHash() % uint32(3)
 				isPresent, entry := ht.contains(tmp, pos)
 				is.Nil(entry)
 				is.False(isPresent)
 
-				tmp = data.NewEntry("key1", 100)
+				tmp = data.NewDataWithHash[string, any]("key1", 100)
 				pos = tmp.GetHash() % uint32(3)
 				isPresent, entry = ht.contains(tmp, pos)
 				is.Equal(entry.Key, "key1")
@@ -243,7 +243,7 @@ func Test_Delete(t *testing.T) {
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
 
-				tmp := data.NewEntry("key1", 100)
+				tmp := data.NewDataWithHash[string, any]("key1", 100)
 				pos := tmp.GetHash() % uint32(3)
 				isPresent, entry := ht.contains(tmp, pos)
 				is.Nil(entry)
