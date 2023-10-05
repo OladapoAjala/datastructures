@@ -38,6 +38,13 @@ func NewDataWithHash[K constraints.Ordered, V any](key K, val V) *Data[K, V] {
 	}
 }
 
+func (d *Data[K, V]) Probe() uint32 {
+	hasher := fnv.New32a()
+	hasher.Write([]byte(ToString(d.GetKey())))
+
+	return hasher.Sum32()
+}
+
 func (d *Data[K, V]) Equal(val *Data[K, V]) bool {
 	if d.hash != val.hash {
 		return false
