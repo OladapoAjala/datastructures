@@ -212,9 +212,37 @@ func Test_Find(t *testing.T) {
 				err := ht.Insert(key, "resizeValue")
 				is.Nil(err)
 			},
-			want: func(result any, err error) {
+			want: func(value any, err error) {
 				is.Nil(err)
-				is.Equal(result, "resizeValue")
+				is.Equal(value, "resizeValue")
+			},
+		},
+		{
+			name: "find key after deleting different item",
+			args: args{
+				key: "key5",
+			},
+			setup: func(ht *HashTable[string], key string) {
+				err := ht.Delete("key4")
+				is.Nil(err)
+			},
+			want: func(value any, err error) {
+				is.Nil(err)
+				is.Equal(value, "resizeValue")
+			},
+		},
+		{
+			name: "find key after deleting same item",
+			args: args{
+				key: "key5",
+			},
+			setup: func(ht *HashTable[string], key string) {
+				err := ht.Delete(key)
+				is.Nil(err)
+			},
+			want: func(value any, err error) {
+				is.Error(fmt.Errorf("key key5 not found in hashtable"), err)
+				is.Nil(value)
 			},
 		},
 	}
