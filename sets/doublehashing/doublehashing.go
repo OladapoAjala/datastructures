@@ -53,7 +53,7 @@ func (h *HashTable[K]) Insert(key K, value any) error {
 	index := item.GetHash() % uint32(h.capacity)
 
 	switch v := h.Table[index]; {
-	case v == nil:
+	case v == nil || v.IsTombStone():
 		h.Table[index] = item
 	case v.Key == key:
 		v.Value = value
@@ -82,7 +82,7 @@ func (h *HashTable[K]) resize() error {
 	ht := NewHashTable[K](cap)
 
 	for _, it := range h.Table {
-		if it == nil {
+		if it == nil || it.IsTombStone() {
 			continue
 		}
 		err := ht.Insert(it.GetKey(), it.GetValue())
@@ -143,6 +143,8 @@ func (h *HashTable[K]) Delete(key K) error {
 		return err
 	}
 	h.Table[index] = data.NewTombStone[K, any]()
+	h.size--
+	h.loadFactor = float32(h.size) / float32(h.capacity)
 	return nil
 }
 
