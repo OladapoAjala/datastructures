@@ -1,4 +1,4 @@
-package hashtable
+package seperatechaining
 
 import (
 	"fmt"

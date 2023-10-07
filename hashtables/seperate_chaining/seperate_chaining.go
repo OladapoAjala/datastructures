@@ -1,11 +1,11 @@
-package hashtable
+package seperatechaining
 
 import (
 	"fmt"
 	"hash/fnv"
 
+	"github.com/OladapoAjala/datastructures/hashtables"
 	"github.com/OladapoAjala/datastructures/sequences/linkedlist"
-	"github.com/OladapoAjala/datastructures/sets"
 	"github.com/OladapoAjala/datastructures/sets/data"
 	"golang.org/x/exp/constraints"
 )
@@ -18,12 +18,13 @@ type HashTable[K constraints.Ordered] struct {
 }
 
 type HashTabler[K constraints.Ordered] interface {
-	sets.Seter[K, any]
+	hashtables.HashTabler[K]
+	GetThreshold() int32
 }
 
 const MAX_LOAD_FACTOR float32 = 0.80
 
-// var _ HashTabler[string, any] = new(HashTable[string, data.data[string]])
+var _ HashTabler[string] = new(HashTable[string])
 
 func NewHashTable[K constraints.Ordered](capacity int32) *HashTable[K] {
 	table := make([]*linkedlist.LinkedList[*data.Data[K, any]], capacity)

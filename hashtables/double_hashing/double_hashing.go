@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"hash/fnv"
 
+	"github.com/OladapoAjala/datastructures/hashtables"
 	"github.com/OladapoAjala/datastructures/helpers"
-	"github.com/OladapoAjala/datastructures/sets"
 	"github.com/OladapoAjala/datastructures/sets/data"
 	"golang.org/x/exp/constraints"
 )
@@ -23,8 +23,11 @@ const (
 )
 
 type HashTabler[K constraints.Ordered] interface {
-	sets.Seter[K, any]
+	hashtables.HashTabler[K]
+	GetLoadFactor() float32
 }
+
+var _ HashTabler[string] = new(HashTable[string])
 
 func NewHashTable[K constraints.Ordered](capacity int32) *HashTable[K] {
 	var cap int32
