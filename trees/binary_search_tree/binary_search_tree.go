@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/OladapoAjala/datastructures/queue"
+	"github.com/OladapoAjala/datastructures/queues/queue"
 	"golang.org/x/exp/constraints"
 )
 
