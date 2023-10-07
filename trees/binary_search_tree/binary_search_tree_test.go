@@ -37,7 +37,7 @@ func Test_Add(t *testing.T) {
 			bst: bst,
 			want: func(bst *BinarySearchTree[int], err error) {
 				is.Nil(err)
-				is.Equal(bst.Root.data, 4)
+				is.Equal(bst.Root.GetData(), 4)
 				is.EqualValues(bst.nodeCount, 1)
 			},
 		},
@@ -50,9 +50,9 @@ func Test_Add(t *testing.T) {
 			want: func(bst *BinarySearchTree[int], err error) {
 				is.Nil(err)
 				is.EqualValues(bst.nodeCount, 2)
-				is.NotNil(bst.Root.left)
-				is.Nil(bst.Root.right)
-				is.Equal(bst.Root.left.data, 2)
+				is.NotNil(bst.Root.GetLeft())
+				is.Nil(bst.Root.GetRight())
+				is.Equal(bst.Root.GetLeft().GetData(), 2)
 			},
 		},
 		{
@@ -64,10 +64,10 @@ func Test_Add(t *testing.T) {
 			want: func(bst *BinarySearchTree[int], err error) {
 				is.Nil(err)
 				is.EqualValues(bst.nodeCount, 3)
-				is.NotNil(bst.Root.left)
-				is.NotNil(bst.Root.right)
-				is.Equal(bst.Root.left.data, 2)
-				is.Equal(bst.Root.right.data, 5)
+				is.NotNil(bst.Root.GetLeft())
+				is.NotNil(bst.Root.GetRight())
+				is.Equal(bst.Root.GetLeft().GetData(), 2)
+				is.Equal(bst.Root.GetRight().GetData(), 5)
 			},
 		},
 		{
@@ -80,12 +80,12 @@ func Test_Add(t *testing.T) {
 				is.Nil(err)
 				is.EqualValues(bst.nodeCount, 4)
 
-				is.NotNil(bst.Root.left)
-				is.NotNil(bst.Root.right)
-				is.Nil(bst.Root.left.right)
-				is.NotNil(bst.Root.left.left)
+				is.NotNil(bst.Root.GetLeft())
+				is.NotNil(bst.Root.GetRight())
+				is.Nil(bst.Root.GetLeft().GetRight())
+				is.NotNil(bst.Root.GetLeft().GetLeft())
 
-				is.Equal(bst.Root.left.left.data, 1)
+				is.Equal(bst.Root.GetLeft().GetLeft().GetData(), 1)
 			},
 		},
 		{
@@ -98,13 +98,13 @@ func Test_Add(t *testing.T) {
 				is.Nil(err)
 				is.EqualValues(bst.nodeCount, 5)
 
-				is.NotNil(bst.Root.left)
-				is.NotNil(bst.Root.right)
-				is.Nil(bst.Root.left.right)
-				is.NotNil(bst.Root.left.left)
-				is.NotNil(bst.Root.right.right)
+				is.NotNil(bst.Root.GetLeft())
+				is.NotNil(bst.Root.GetRight())
+				is.Nil(bst.Root.GetLeft().GetRight())
+				is.NotNil(bst.Root.GetLeft().GetLeft())
+				is.NotNil(bst.Root.GetRight().GetRight())
 
-				is.Equal(bst.Root.right.right.data, 6)
+				is.Equal(bst.Root.GetRight().GetRight().GetData(), 6)
 			},
 		},
 		{
@@ -117,9 +117,9 @@ func Test_Add(t *testing.T) {
 				is.Nil(err)
 				is.EqualValues(bst.nodeCount, 6)
 
-				is.NotNil(bst.Root.left.right)
+				is.NotNil(bst.Root.GetLeft().GetRight())
 
-				is.Equal(bst.Root.left.right.data, 3)
+				is.Equal(bst.Root.GetLeft().GetRight().GetData(), 3)
 			},
 		},
 		{
@@ -132,10 +132,10 @@ func Test_Add(t *testing.T) {
 				is.Nil(err)
 				is.EqualValues(bst.nodeCount, 10)
 
-				is.Equal(bst.Root.right.right.right.data, 10)
-				is.Equal(bst.Root.right.right.right.left.data, 7)
-				is.Equal(bst.Root.right.right.right.left.right.data, 8)
-				is.Equal(bst.Root.right.right.right.right.data, 11)
+				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetData(), 10)
+				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetLeft().GetData(), 7)
+				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetLeft().GetRight().GetData(), 8)
+				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetRight().GetData(), 11)
 			},
 		},
 	}
@@ -229,9 +229,9 @@ func Test_Remove(t *testing.T) {
 			},
 			want: func(bst *BinarySearchTree[string], err error) {
 				is.Nil(err)
-				is.Equal(bst.Root.data, "B")
-				is.Nil(bst.Root.left)
-				is.Equal(bst.Root.right.data, "C")
+				is.Equal(bst.Root.GetData(), "B")
+				is.Nil(bst.Root.GetLeft())
+				is.Equal(bst.Root.GetRight().GetData(), "C")
 				is.EqualValues(bst.nodeCount, 2)
 			},
 		},
@@ -250,14 +250,14 @@ func Test_Remove(t *testing.T) {
 			},
 			want: func(bst *BinarySearchTree[string], err error) {
 				is.Nil(err)
-				is.Equal(bst.Root.data, "B")
-				is.Nil(bst.Root.left)
-				is.Equal(bst.Root.right.data, "C")
-				is.Equal(bst.Root.right.right.data, "F")
-				is.Equal(bst.Root.right.right.left.data, "D")
-				is.Equal(bst.Root.right.right.right.data, "I")
-				is.Nil(bst.Root.right.right.right.left)
-				is.Equal(bst.Root.right.right.right.right.data, "J")
+				is.Equal(bst.Root.GetData(), "B")
+				is.Nil(bst.Root.GetLeft())
+				is.Equal(bst.Root.GetRight().GetData(), "C")
+				is.Equal(bst.Root.GetRight().GetRight().GetData(), "F")
+				is.Equal(bst.Root.GetRight().GetRight().GetLeft().GetData(), "D")
+				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetData(), "I")
+				is.Nil(bst.Root.GetRight().GetRight().GetRight().GetLeft())
+				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetRight().GetData(), "J")
 			},
 		},
 	}

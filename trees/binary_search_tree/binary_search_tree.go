@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/OladapoAjala/datastructures/queues/queue"
+	"github.com/OladapoAjala/datastructures/trees/node"
 	"golang.org/x/exp/constraints"
 )
 
@@ -15,24 +16,13 @@ const (
 	levelOrder
 )
 
-type node[T constraints.Ordered] struct {
-	data  T
-	left  *node[T]
-	right *node[T]
-}
-
-func NewNode[T constraints.Ordered](data T) *node[T] {
-	return &node[T]{
-		data: data,
-	}
-}
-
 type BinarySearchTree[T constraints.Ordered] struct {
 	nodeCount int32
-	Root      *node[T]
+	Root      *node.Node[T]
 }
 
 type IBinarySearchTree[T constraints.Ordered] interface {
+	// trees.ITrees[T]
 	Add(...T) error
 	Contains(T) bool
 	Remove(T) error
@@ -59,35 +49,34 @@ func (bst *BinarySearchTree[T]) Add(data ...T) error {
 	return nil
 }
 
-func add[T constraints.Ordered](node *node[T], data T) *node[T] {
-	if node == nil {
-		return NewNode(data)
+func add[T constraints.Ordered](item *node.Node[T], data T) *node.Node[T] {
+	if item == nil {
+		return node.NewNode[T](data)
 	}
 
-	if data <= node.data {
-		node.left = add(node.left, data)
+	if data <= item.GetData() {
+		item.Left = add(item.GetLeft(), data)
 	} else {
-		node.right = add(node.right, data)
+		item.Right = add(item.GetRight(), data)
 	}
 
-	return node
+	return item
 }
 
 func (bst *BinarySearchTree[T]) Contains(data T) bool {
 	return contains(bst.Root, data)
 }
 
-func contains[T constraints.Ordered](node *node[T], data T) bool {
-	if node == nil {
+func contains[T constraints.Ordered](item *node.Node[T], data T) bool {
+	if item == nil {
 		return false
 	}
 
-	if data < node.data {
-		return contains(node.left, data)
-	} else if data > node.data {
-		return contains(node.right, data)
+	if data < item.GetData() {
+		return contains(item.GetLeft(), data)
+	} else if data > item.GetData() {
+		return contains(item.GetRight(), data)
 	}
-
 	return true
 }
 
@@ -101,33 +90,33 @@ func (bst *BinarySearchTree[T]) Remove(data T) error {
 	return nil
 }
 
-func remove[T constraints.Ordered](node *node[T], data T) *node[T] {
-	if node == nil {
+func remove[T constraints.Ordered](item *node.Node[T], data T) *node.Node[T] {
+	if item == nil {
 		return nil
 	}
 
-	if data < node.data {
-		node.left = remove(node.left, data)
-	} else if data > node.data {
-		node.right = remove(node.right, data)
+	if data < item.GetData() {
+		item.Left = remove(item.GetLeft(), data)
+	} else if data > item.GetData() {
+		item.Right = remove(item.GetRight(), data)
 	} else {
-		if node.left == nil {
-			return node.right
-		} else if node.right == nil {
-			return node.left
+		if item.GetLeft() == nil {
+			return item.GetRight()
+		} else if item.GetRight() == nil {
+			return item.GetLeft()
 		} else {
-			tmp := findMin(node.right)
-			node.data = tmp.data
-			node.right = remove(node.right, tmp.data)
+			tmp := findMin(item.GetRight())
+			item.Data = tmp.GetData()
+			item.Right = remove(item.GetRight(), tmp.GetData())
 		}
 	}
 
-	return node
+	return item
 }
 
-func findMin[T constraints.Ordered](node *node[T]) *node[T] {
-	for node.left != nil {
-		node = node.left
+func findMin[T constraints.Ordered](node *node.Node[T]) *node.Node[T] {
+	for node.GetLeft() != nil {
+		node = node.GetLeft()
 	}
 	return node
 }
@@ -140,12 +129,12 @@ func (bst *BinarySearchTree[T]) Height() int32 {
 	return height(bst.Root)
 }
 
-func height[T constraints.Ordered](node *node[T]) int32 {
+func height[T constraints.Ordered](node *node.Node[T]) int32 {
 	if node == nil {
 		return 0
 	}
 
-	height := math.Max(float64(height(node.left)), float64(height(node.right))) + 1
+	height := math.Max(float64(height(node.GetLeft())), float64(height(node.GetRight()))) + 1
 	return int32(height)
 }
 
@@ -164,37 +153,37 @@ func (bst *BinarySearchTree[T]) Traverse(traversal int) {
 	}
 }
 
-func preOrderTraversal[T constraints.Ordered](root *node[T]) {
+func preOrderTraversal[T constraints.Ordered](root *node.Node[T]) {
 	if root == nil {
 		return
 	}
 
-	fmt.Println(root.data)
-	preOrderTraversal(root.left)
-	preOrderTraversal(root.right)
+	fmt.Println(root.GetData())
+	preOrderTraversal(root.GetLeft())
+	preOrderTraversal(root.GetRight())
 }
 
-func inOrderTraversal[T constraints.Ordered](root *node[T]) {
+func inOrderTraversal[T constraints.Ordered](root *node.Node[T]) {
 	if root == nil {
 		return
 	}
 
-	inOrderTraversal(root.left)
-	fmt.Println(root.data)
-	inOrderTraversal(root.right)
+	inOrderTraversal(root.GetLeft())
+	fmt.Println(root.GetData())
+	inOrderTraversal(root.GetRight())
 }
 
-func postOrderTraversal[T constraints.Ordered](root *node[T]) {
+func postOrderTraversal[T constraints.Ordered](root *node.Node[T]) {
 	if root == nil {
 		return
 	}
 
-	fmt.Println(root.data)
-	postOrderTraversal(root.left)
-	postOrderTraversal(root.right)
+	fmt.Println(root.GetData())
+	postOrderTraversal(root.GetLeft())
+	postOrderTraversal(root.GetRight())
 }
 
-func levelOrderTraversal[T constraints.Ordered](root *node[T]) {
+func levelOrderTraversal[T constraints.Ordered](root *node.Node[T]) {
 	if root == nil {
 		return
 	}
@@ -208,22 +197,22 @@ func levelOrderTraversal[T constraints.Ordered](root *node[T]) {
 	}
 }
 
-func printLevel[T constraints.Ordered](lvl int32, root *node[T]) {
+func printLevel[T constraints.Ordered](lvl int32, root *node.Node[T]) {
 	if root == nil {
 		return
 	}
 
 	if lvl == 0 {
-		fmt.Printf("%v -> ", root.data)
+		fmt.Printf("%v -> ", root.GetData())
 	} else {
 		lvl--
-		printLevel(lvl, root.left)
-		printLevel(lvl, root.right)
+		printLevel(lvl, root.GetLeft())
+		printLevel(lvl, root.GetRight())
 	}
 }
 
 func breadthFirstSearch[T constraints.Ordered](bst *BinarySearchTree[T]) {
-	que := queue.NewQueue[*node[T]]()
+	que := queue.NewQueue[*node.Node[T]]()
 	que.Enqueue(bst.Root)
 
 	for {
@@ -232,14 +221,14 @@ func breadthFirstSearch[T constraints.Ordered](bst *BinarySearchTree[T]) {
 			return
 		}
 
-		fmt.Println(_node.data)
+		fmt.Println(_node.GetData())
 
-		if _node.left != nil {
-			que.Enqueue(_node.left)
+		if _node.GetLeft() != nil {
+			que.Enqueue(_node.GetLeft())
 		}
 
-		if _node.right != nil {
-			que.Enqueue(_node.right)
+		if _node.GetRight() != nil {
+			que.Enqueue(_node.GetRight())
 		}
 	}
 }
