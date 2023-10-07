@@ -3,17 +3,12 @@ package doublehashing
 import (
 	"fmt"
 	"hash/fnv"
-	"math"
 
+	"github.com/OladapoAjala/datastructures/helpers"
 	"github.com/OladapoAjala/datastructures/sets"
 	"github.com/OladapoAjala/datastructures/sets/data"
 	"golang.org/x/exp/constraints"
 )
-
-var TOMBSTONE = data.Data[int, any]{
-	Key:   -10928623050,
-	Value: nil,
-}
 
 type HashTable[K constraints.Ordered] struct {
 	Table      []*data.Data[K, any]
@@ -35,10 +30,10 @@ func NewHashTable[K constraints.Ordered](capacity int32) *HashTable[K] {
 	var cap int32
 	if capacity == 0 {
 		cap = DEFAULT_CAPACITY
-	} else if isPrime(capacity) {
+	} else if helpers.IsPrime(capacity) {
 		cap = capacity
 	} else {
-		cap = nextPrime(capacity)
+		cap = helpers.NextPrime(capacity)
 	}
 	table := make([]*data.Data[K, any], cap)
 
@@ -66,12 +61,9 @@ func (h *HashTable[K]) Insert(key K, value any) error {
 	default:
 		var x uint32 = 1
 		h1 := index
-		for h.Table[index] != nil {
-			delta := item.Probe() % uint32(h.capacity)
-			if delta == 0 {
-				delta = 1
-			}
-			index = (h1 + (x * delta)) % uint32(h.capacity)
+		for v != nil {
+			index = h.getNextIndex(v, h1, x)
+			v = h.Table[index]
 			x++
 		}
 		h.Table[index] = item
@@ -86,7 +78,7 @@ func (h *HashTable[K]) Insert(key K, value any) error {
 }
 
 func (h *HashTable[K]) resize() error {
-	cap := nextPrime(h.GetCapacity())
+	cap := helpers.NextPrime(h.GetCapacity())
 	ht := NewHashTable[K](cap)
 
 	for _, it := range h.Table {
@@ -107,22 +99,58 @@ func (h *HashTable[K]) resize() error {
 }
 
 func (h *HashTable[K]) Find(key K) (any, error) {
-	if key == *new(K) {
-		return nil, fmt.Errorf("invalid key")
+	index, err := h.getIndex(key)
+	if err != nil {
+		return nil, err
 	}
+	item := h.Table[index]
+	return item.GetValue(), nil
+}
+
+func (h *HashTable[K]) getIndex(key K) (int32, error) {
+	if key == *new(K) {
+		return -1, fmt.Errorf("invalid key")
+	}
+
+	data, index := h.GetData(key)
+	if data == nil {
+		return -1, fmt.Errorf("key %v not found in hashtable", key)
+	} else if data.Key == key {
+		return int32(index), nil
+	} else {
+		var x uint32 = 1
+		h1 := index
+
+		for !data.IsTombStone() {
+			index = h.getNextIndex(data, h1, x)
+			data = h.Table[index]
+			if data == nil {
+				return -1, fmt.Errorf("key %v not found in hashtable", key)
+			}
+			if data.Key == key {
+				return int32(index), nil
+			}
+			x++
+		}
+	}
+
+	return -1, fmt.Errorf("key %v not found in hashtable", key)
+}
+
+func (h *HashTable[K]) Delete(key K) error {
+	index, err := h.getIndex(key)
+	if err != nil {
+		return err
+	}
+	h.Table[index] = data.NewTombStone[K, any]()
+	return nil
+}
+
+func (h *HashTable[K]) GetData(key K) (*data.Data[K, any], uint32) {
 	hasher := fnv.New32()
 	hasher.Write([]byte(data.ToString(key)))
 	index := hasher.Sum32() % uint32(h.capacity)
-	item := h.Table[index]
-
-	if item == nil {
-		return nil, fmt.Errorf("key %v not found in hashtable", key)
-	}
-	if item.Key != key {
-		// compute new index
-	}
-
-	return item.Value, nil
+	return h.Table[index], index
 }
 
 func (h *HashTable[K]) GetCapacity() int32 {
@@ -137,23 +165,10 @@ func (h *HashTable[K]) GetLoadFactor() float32 {
 	return h.loadFactor
 }
 
-func isPrime(num int32) bool {
-	if num < 2 {
-		return false
+func (h *HashTable[K]) getNextIndex(item *data.Data[K, any], offset, x uint32) uint32 {
+	delta := item.Probe() % uint32(h.capacity)
+	if delta == 0 {
+		delta = 1
 	}
-
-	for i := 2; i <= int(math.Sqrt(float64(num))); i++ {
-		if num%int32(i) == 0 {
-			return false
-		}
-	}
-	return true
-}
-
-func nextPrime(input int32) int32 {
-	input++
-	for !isPrime(input) {
-		input++
-	}
-	return input
+	return (offset + (x * delta)) % uint32(h.capacity)
 }

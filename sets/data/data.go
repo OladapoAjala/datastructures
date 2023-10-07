@@ -38,6 +38,12 @@ func NewDataWithHash[K constraints.Ordered, V any](key K, val V) *Data[K, V] {
 	}
 }
 
+func NewTombStone[K constraints.Ordered, V any]() *Data[K, any] {
+	return &Data[K, any]{
+		hash: 0xDEAD,
+	}
+}
+
 func (d *Data[K, V]) Probe() uint32 {
 	hasher := fnv.New32a()
 	hasher.Write([]byte(ToString(d.GetKey())))
@@ -50,6 +56,10 @@ func (d *Data[K, V]) Equal(val *Data[K, V]) bool {
 		return false
 	}
 	return d.GetKey() == val.GetKey()
+}
+
+func (d *Data[K, V]) IsTombStone() bool {
+	return d.hash == 0xDEAD
 }
 
 func (d *Data[K, V]) GetKey() K {

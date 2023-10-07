@@ -127,3 +127,106 @@ func Test_Insert(t *testing.T) {
 		})
 	}
 }
+
+func Test_Find(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		key string
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		setup func(*HashTable[string], string)
+		want  func(any, error)
+	}{
+		{
+			name: "find with invalid key",
+			args: args{
+				key: "",
+			},
+			want: func(value any, err error) {
+				is.Error(fmt.Errorf("invalid key"), err)
+				is.Nil(value)
+			},
+		},
+		{
+			name: "find non-existing key",
+			args: args{
+				key: "nonexistent",
+			},
+			want: func(value any, err error) {
+				is.Error(fmt.Errorf("key nonexistent not found in hashtable"), err)
+				is.Nil(value)
+			},
+		},
+		{
+			name: "find existing key -- one content",
+			args: args{
+				key: "key1",
+			},
+			setup: func(ht *HashTable[string], key string) {
+				err := ht.Insert(key, "value1")
+				is.Nil(err)
+			},
+			want: func(value any, err error) {
+				is.Nil(err)
+				is.Equal(value, "value1")
+			},
+		},
+		{
+			name: "find existing key -- two contents",
+			args: args{
+				key: "key0",
+			},
+			setup: func(ht *HashTable[string], key string) {
+				err := ht.Insert(key, "value2")
+				is.Nil(err)
+			},
+			want: func(value any, err error) {
+				is.Nil(err)
+				is.Equal(value, "value2")
+			},
+		},
+		{
+			name: "find key with collision and probing",
+			args: args{
+				key: "key4",
+			},
+			setup: func(ht *HashTable[string], key string) {
+				err := ht.Insert(key, []int{1, 9, 9, 9})
+				is.Nil(err)
+			},
+			want: func(value any, err error) {
+				is.Nil(err)
+				is.Equal(value, []int{1, 9, 9, 9})
+			},
+		},
+		{
+			name: "find key after resize",
+			args: args{
+				key: "key5", // I need something that clashes with key4 on resize.
+			},
+			setup: func(ht *HashTable[string], key string) {
+				err := ht.Insert(key, "resizeValue")
+				is.Nil(err)
+			},
+			want: func(result any, err error) {
+				is.Nil(err)
+				is.Equal(result, "resizeValue")
+			},
+		},
+	}
+
+	hashTable := NewHashTable[string](5)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(hashTable, tt.args.key)
+			}
+			result, err := hashTable.Find(tt.args.key)
+			tt.want(result, err)
+		})
+	}
+}
