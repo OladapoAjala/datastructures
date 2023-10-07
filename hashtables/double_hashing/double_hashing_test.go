@@ -133,7 +133,7 @@ func Test_Insert(t *testing.T) {
 			want: func(ht *HashTable[string], err error) {
 				is.Nil(err)
 				is.Equal(ht.Table[4].GetKey(), "key4")
-				is.Equal(ht.Table[4].GetValue(), []int{1, 9, 9, 9})
+				is.Equal(ht.Table[4].GetValue(), "rebirth")
 				is.EqualValues(ht.GetCapacity(), 7)
 				is.EqualValues(ht.GetSize(), 4)
 				is.EqualValues(ht.GetLoadFactor(), float32(0.5714286))
