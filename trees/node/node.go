@@ -1,16 +1,12 @@
 package node
 
-import (
-	"golang.org/x/exp/constraints"
-)
-
-type Node[T constraints.Ordered] struct {
+type Node[T any] struct {
 	Data  T
 	Left  *Node[T]
 	Right *Node[T]
 }
 
-func NewNode[T constraints.Ordered](data T) *Node[T] {
+func NewNode[T any](data T) *Node[T] {
 	return &Node[T]{
 		Data:  data,
 		Left:  nil,
