@@ -311,7 +311,7 @@ func Test_Height(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(tt.bst)
 			}
-			height := tt.bst.Height()
+			height := tt.bst.GetHeight()
 			tt.want(height)
 		})
 	}

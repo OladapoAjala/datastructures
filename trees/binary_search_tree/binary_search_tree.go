@@ -17,8 +17,9 @@ const (
 )
 
 type BinarySearchTree[T constraints.Ordered] struct {
-	nodeCount int32
 	Root      *node.Node[T]
+	nodeCount int32
+	height    int32
 }
 
 type IBinarySearchTree[T constraints.Ordered] interface {
@@ -27,7 +28,7 @@ type IBinarySearchTree[T constraints.Ordered] interface {
 	Contains(T) bool
 	Remove(T) error
 	Size() int32
-	Height() int32
+	GetHeight() int32
 	Traverse(int)
 }
 
@@ -125,7 +126,7 @@ func (bst *BinarySearchTree[T]) Size() int32 {
 	return bst.nodeCount
 }
 
-func (bst *BinarySearchTree[T]) Height() int32 {
+func (bst *BinarySearchTree[T]) GetHeight() int32 {
 	return height(bst.Root)
 }
 
