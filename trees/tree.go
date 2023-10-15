@@ -20,7 +20,6 @@ type ITrees[T comparable] interface {
 	// GetNodeHeight(*node.Node[T]) int32
 	// GetNodeDepth(*node.Node[T]) int32
 
-	// Delete(T) error
 	// Insert(T) error
 	// Sequence() *sequences.Sequencer[T]
 	// Set() *sets.Seter[T, any]

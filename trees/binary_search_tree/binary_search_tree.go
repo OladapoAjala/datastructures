@@ -17,7 +17,9 @@ type BinarySearchTree[T constraints.Ordered] struct {
 
 type IBinarySearchTree[T constraints.Ordered] interface {
 	trees.ITrees[T]
-	// Delete(T) error
+	Insert(T) (*node.Node[T], error)
+	Find(T) (*node.Node[T], error)
+	Delete(T) error
 	// Insert(T) error
 	// Sequence() *sequences.Sequencer[T]
 	// Set() *sets.Seter[T, any]
@@ -33,10 +35,10 @@ func NewBinarySearchTree[T constraints.Ordered]() *BinarySearchTree[T] {
 
 func (bst *BinarySearchTree[T]) InsertMany(data ...T) error {
 	for _, d := range data {
-		if isPresent := bst.Contains(d); isPresent {
+		n, _ := bst.Find(d)
+		if n != nil {
 			return fmt.Errorf("%v present in tree", d)
 		}
-
 		_, err := bst.Insert(d)
 		if err != nil {
 			return err
@@ -93,55 +95,66 @@ func (bst *BinarySearchTree[T]) validateData(data T, p *node.Node[T]) error {
 	return nil
 }
 
-func (bst *BinarySearchTree[T]) Contains(data T) bool {
-	return contains(bst.Root, data)
+func (bst *BinarySearchTree[T]) Find(data T) (*node.Node[T], error) {
+	if data == *new(T) {
+		return nil, fmt.Errorf("empty value")
+	}
+	if bst.Size == 0 {
+		return nil, fmt.Errorf("empty tree")
+	}
+	return bst.find(data, bst.Root)
 }
 
-func contains[T constraints.Ordered](item *node.Node[T], data T) bool {
-	if item == nil {
-		return false
+func (bst *BinarySearchTree[T]) find(data T, n *node.Node[T]) (*node.Node[T], error) {
+	if n == nil {
+		return nil, fmt.Errorf("data %v is not in tree", data)
 	}
 
-	if data < item.GetData() {
-		return contains(item.GetLeft(), data)
-	} else if data > item.GetData() {
-		return contains(item.GetRight(), data)
+	if data < n.Data {
+		return bst.find(data, n.Left)
+	} else if data > n.Data {
+		return bst.find(data, n.Right)
 	}
-	return true
+	return n, nil
 }
 
-func (bst *BinarySearchTree[T]) Remove(data T) error {
-	if !bst.Contains(data) {
-		return fmt.Errorf("%v not present in tree", data)
+func (bst *BinarySearchTree[T]) Delete(data T) error {
+	n, err := bst.Find(data)
+	if err != nil {
+		return err
 	}
-
-	bst.Root = remove(bst.Root, data)
-	bst.Size--
-	return nil
+	return bst.delete(n)
 }
 
-func remove[T constraints.Ordered](item *node.Node[T], data T) *node.Node[T] {
-	if item == nil {
+func (bst *BinarySearchTree[T]) delete(n *node.Node[T]) error {
+	if n.IsLeaf() {
+		if n.Parent.Left == n {
+			n.Parent.Left = nil
+		} else {
+			n.Parent.Right = nil
+		}
 		return nil
 	}
 
-	if data < item.GetData() {
-		item.Left = remove(item.GetLeft(), data)
-	} else if data > item.GetData() {
-		item.Right = remove(item.GetRight(), data)
-	} else {
-		if item.GetLeft() == nil {
-			return item.GetRight()
-		} else if item.GetRight() == nil {
-			return item.GetLeft()
-		} else {
-			tmp := findMin(item.GetRight())
-			item.Data = tmp.GetData()
-			item.Right = remove(item.GetRight(), tmp.GetData())
+	if n.Left != nil {
+		pre, err := bst.Predecessor(n)
+		if err != nil {
+			return err
 		}
+		tmp := pre.Data
+		pre.Data = n.Data
+		n.Data = tmp
+		return bst.delete(pre)
 	}
 
-	return item
+	suc, err := bst.Successor(n)
+	if err != nil {
+		return err
+	}
+	tmp := suc.Data
+	suc.Data = n.Data
+	n.Data = tmp
+	return bst.delete(suc)
 }
 
 func findMin[T constraints.Ordered](node *node.Node[T]) *node.Node[T] {
@@ -213,78 +226,3 @@ func breadthFirstSearch[T constraints.Ordered](bst *BinarySearchTree[T]) {
 		}
 	}
 }
-
-/***
-	NON-RECURSIVE IMPLEMENTATION
-
-	1. ADD
-	func (bst *BinarySearchTree[T]) Add(data T) error {
-		if bst.Size == 0 {
-			bst.Root.data = data
-			bst.Size++
-			return nil
-		}
-
-		currData := bst.Root.data
-		nextNode := bst.Root
-
-		for nextNode.left != nil && nextNode.right != nil {
-			if data <= currData {
-				nextNode = nextNode.left
-				currData = nextNode.data
-				continue
-			}
-
-			nextNode = nextNode.right
-			currData = nextNode.data
-		}
-
-		if data <= currData {
-			nextNode.left = NewNode(data)
-			bst.Size++
-		}
-
-		if data > currData {
-			nextNode.right = NewNode(data)
-			bst.Size++
-		}
-
-		return nil
-	}
-
-	2. CONTAINS
-	func (bst *BinarySearchTree[T]) Contains(data T) (bool, *node[T]) {
-		if bst.Size == 0 {
-			return false, nil
-		}
-		nextNode := bst.Root
-		currData := bst.Root.data
-		if currData == data {
-			return true, nextNode
-		}
-
-		for nextNode.left != nil && nextNode.right != nil {
-			if data <= currData {
-				nextNode = nextNode.left
-				currData = nextNode.data
-			} else {
-				nextNode = nextNode.right
-				currData = nextNode.data
-			}
-
-			if currData == data {
-				return true, nextNode
-			}
-		}
-
-		return false, nil
-	}
-
-	3. Unused method
-	func compare[T constraints.Ordered](a, b T) int32 {
-		if a >= b {
-			return GREATER
-		}
-		return LESSER
-	}
-***/

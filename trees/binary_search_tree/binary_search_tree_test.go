@@ -144,44 +144,68 @@ func Test_InsertMany(t *testing.T) {
 	}
 }
 
-func Test_Contains(t *testing.T) {
+func Test_Delete(t *testing.T) {
 	is := assert.New(t)
-	bst := NewBinarySearchTree[string]()
-
-	type args struct {
-		data string
-	}
+	bst := NewBinarySearchTree[int]()
 
 	tests := []struct {
 		name  string
-		args  args
-		bst   *BinarySearchTree[string]
-		setup func(*BinarySearchTree[string])
-		want  func(bool)
+		setup func(bst *BinarySearchTree[int])
+		arg   int
+		want  func(*BinarySearchTree[int], error)
 	}{
 		{
-			name: "search empty BST",
-			args: args{
-				data: "A",
+			name: "Delete leaf node",
+			setup: func(bst *BinarySearchTree[int]) {
+				err := bst.InsertMany(10, 5, 15, 3, 8, 12, 20)
+				is.Nil(err)
 			},
-			bst: bst,
-			want: func(b bool) {
-				is.False(b)
+			arg: 3,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Nil(err)
+				order, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(order, []int{5, 8, 10, 12, 15, 20})
 			},
 		},
 		{
-			name: "find A in BST",
-			args: args{
-				data: "A",
+			name: "Delete node with one child",
+			arg:  5,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Nil(err)
+				order, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(order, []int{8, 10, 12, 15, 20})
 			},
-			bst: bst,
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.InsertMany("B")
-				bst.InsertMany("A")
-				bst.InsertMany("C")
+		},
+		{
+			name: "Delete node with two child",
+			arg:  15,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Nil(err)
+				order, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(order, []int{8, 10, 12, 20})
 			},
-			want: func(b bool) {
-				is.True(b)
+		},
+		{
+			name: "Delete root node",
+			arg:  10,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Nil(err)
+				order, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(order, []int{8, 12, 20})
+			},
+		},
+		{
+			name: "Delete non-existent value",
+			arg:  7,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Error(err, fmt.Errorf("data 7 is not in tree"))
+				order, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(order, []int{8, 12, 20})
 			},
 		},
 	}
@@ -189,81 +213,10 @@ func Test_Contains(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
-				tt.setup(tt.bst)
+				tt.setup(bst)
 			}
-			isPresent := tt.bst.Contains(tt.args.data)
-			tt.want(isPresent)
-		})
-	}
-}
-
-func Test_Remove(t *testing.T) {
-	is := assert.New(t)
-	bst := NewBinarySearchTree[string]()
-
-	type args struct {
-		data string
-	}
-
-	tests := []struct {
-		name  string
-		args  args
-		bst   *BinarySearchTree[string]
-		setup func(*BinarySearchTree[string])
-		want  func(*BinarySearchTree[string], error)
-	}{
-		{
-			name: "simple removal",
-			args: args{
-				data: "A",
-			},
-			bst: bst,
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.InsertMany("B")
-				bst.InsertMany("A")
-				bst.InsertMany("C")
-			},
-			want: func(bst *BinarySearchTree[string], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root.GetData(), "B")
-				is.Nil(bst.Root.GetLeft())
-				is.Equal(bst.Root.GetRight().GetData(), "C")
-				is.EqualValues(bst.GetSize(), 2)
-			},
-		},
-		{
-			name: "complex removal",
-			args: args{
-				data: "E",
-			},
-			bst: bst,
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.InsertMany("E")
-				bst.InsertMany("D")
-				bst.InsertMany("I")
-				bst.InsertMany("F")
-				bst.InsertMany("J")
-			},
-			want: func(bst *BinarySearchTree[string], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root.GetData(), "B")
-				is.Nil(bst.Root.GetLeft())
-				is.Equal(bst.Root.GetRight().GetData(), "C")
-				is.Equal(bst.Root.GetRight().GetRight().GetData(), "F")
-				is.Equal(bst.Root.GetRight().GetRight().GetLeft().GetData(), "D")
-				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetData(), "I")
-				is.Nil(bst.Root.GetRight().GetRight().GetRight().GetLeft())
-				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetRight().GetData(), "J")
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.setup != nil {
-				tt.setup(tt.bst)
-			}
-			err := tt.bst.Remove(tt.args.data)
-			tt.want(tt.bst, err)
+			err := bst.Delete(tt.arg)
+			tt.want(bst, err)
 		})
 	}
 }
