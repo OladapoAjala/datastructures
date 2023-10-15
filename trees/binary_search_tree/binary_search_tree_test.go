@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/OladapoAjala/datastructures/trees/node"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,138 +12,133 @@ func Test_NewBinarySearchTree(t *testing.T) {
 	is := assert.New(t)
 	bst := NewBinarySearchTree[string]()
 
-	is.EqualValues(bst.nodeCount, 0)
+	is.EqualValues(bst.GetSize(), 0)
 	is.Nil(bst.Root)
 }
 
-func Test_Add(t *testing.T) {
+func Test_Insert(t *testing.T) {
 	is := assert.New(t)
 	bst := NewBinarySearchTree[int]()
 
-	type args struct {
-		data []int
-	}
-
 	tests := []struct {
-		name string
-		args args
-		bst  *BinarySearchTree[int]
-		want func(*BinarySearchTree[int], error)
+		name  string
+		input int
+		want  func(*node.Node[int], error)
 	}{
 		{
-			name: "insert root element",
-			args: args{
-				data: []int{4},
-			},
-			bst: bst,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name:  "Insert into an empty tree",
+			input: 10,
+			want: func(n *node.Node[int], err error) {
 				is.Nil(err)
-				is.Equal(bst.Root.GetData(), 4)
-				is.EqualValues(bst.nodeCount, 1)
+				is.Equal(bst.Root, n)
+				is.Nil(bst.Root.Left)
+				is.Nil(bst.Root.Right)
+				is.EqualValues(1, bst.GetSize())
 			},
 		},
 		{
-			name: "insert element lesser than root",
-			args: args{
-				data: []int{2},
-			},
-			bst: bst,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name:  "Insert smaller value to the left",
+			input: 5,
+			want: func(n *node.Node[int], err error) {
 				is.Nil(err)
-				is.EqualValues(bst.nodeCount, 2)
-				is.NotNil(bst.Root.GetLeft())
-				is.Nil(bst.Root.GetRight())
-				is.Equal(bst.Root.GetLeft().GetData(), 2)
+				is.Equal(bst.Root.Left, n)
+				is.Nil(bst.Root.Right)
+				is.EqualValues(2, bst.GetSize())
 			},
 		},
 		{
-			name: "insert element greater than root",
-			args: args{
-				data: []int{5},
-			},
-			bst: bst,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name:  "Insert larger value to the right",
+			input: 15,
+			want: func(n *node.Node[int], err error) {
 				is.Nil(err)
-				is.EqualValues(bst.nodeCount, 3)
-				is.NotNil(bst.Root.GetLeft())
-				is.NotNil(bst.Root.GetRight())
-				is.Equal(bst.Root.GetLeft().GetData(), 2)
-				is.Equal(bst.Root.GetRight().GetData(), 5)
+				is.Equal(bst.Root.Left.Data, 5)
+				is.Equal(bst.Root.Right, n)
+				is.EqualValues(3, bst.GetSize())
 			},
 		},
 		{
-			name: "insert element to left sub-tree",
-			args: args{
-				data: []int{1},
-			},
-			bst: bst,
-			want: func(bst *BinarySearchTree[int], err error) {
-				is.Nil(err)
-				is.EqualValues(bst.nodeCount, 4)
-
-				is.NotNil(bst.Root.GetLeft())
-				is.NotNil(bst.Root.GetRight())
-				is.Nil(bst.Root.GetLeft().GetRight())
-				is.NotNil(bst.Root.GetLeft().GetLeft())
-
-				is.Equal(bst.Root.GetLeft().GetLeft().GetData(), 1)
+			name:  "Insert duplicate value",
+			input: 10,
+			want: func(n *node.Node[int], err error) {
+				is.Nil(n)
+				is.Error(fmt.Errorf("data 10 already in tree"))
+				is.EqualValues(3, bst.GetSize())
 			},
 		},
 		{
-			name: "insert element to right sub-tree",
-			args: args{
-				data: []int{6},
-			},
-			bst: bst,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name:  "Insert a value into left sub-tree",
+			input: 3,
+			want: func(n *node.Node[int], err error) {
 				is.Nil(err)
-				is.EqualValues(bst.nodeCount, 5)
-
-				is.NotNil(bst.Root.GetLeft())
-				is.NotNil(bst.Root.GetRight())
-				is.Nil(bst.Root.GetLeft().GetRight())
-				is.NotNil(bst.Root.GetLeft().GetLeft())
-				is.NotNil(bst.Root.GetRight().GetRight())
-
-				is.Equal(bst.Root.GetRight().GetRight().GetData(), 6)
+				is.Equal(bst.Root.Left, n.Parent)
+				is.True(n.IsLeaf())
+				is.EqualValues(4, bst.GetSize())
 			},
 		},
 		{
-			name: "insert one more last element",
-			args: args{
-				data: []int{3},
-			},
-			bst: bst,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name:  "Insert a value into left sub-tree",
+			input: 12,
+			want: func(n *node.Node[int], err error) {
 				is.Nil(err)
-				is.EqualValues(bst.nodeCount, 6)
-
-				is.NotNil(bst.Root.GetLeft().GetRight())
-
-				is.Equal(bst.Root.GetLeft().GetRight().GetData(), 3)
+				is.Equal(bst.Root.Right, n.Parent)
+				is.True(n.IsLeaf())
+				is.EqualValues(5, bst.GetSize())
 			},
 		},
 		{
-			name: "insert an array of data",
-			args: args{
-				data: []int{10, 7, 8, 11},
-			},
-			bst: bst,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name:  "Insert negative values",
+			input: -10,
+			want: func(n *node.Node[int], err error) {
 				is.Nil(err)
-				is.EqualValues(bst.nodeCount, 10)
-
-				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetData(), 10)
-				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetLeft().GetData(), 7)
-				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetLeft().GetRight().GetData(), 8)
-				is.Equal(bst.Root.GetRight().GetRight().GetRight().GetRight().GetData(), 11)
+				is.Equal(bst.Root.Left.Left, n.Parent)
+				is.True(n.IsLeaf())
+				is.EqualValues(6, bst.GetSize())
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.bst.Add(tt.args.data...)
+			n, err := bst.Insert(tt.input)
+			tt.want(n, err)
+		})
+	}
+}
+
+func Test_InsertMany(t *testing.T) {
+	is := assert.New(t)
+	bst := NewBinarySearchTree[int]()
+
+	tests := []struct {
+		name string
+		data []int
+		bst  *BinarySearchTree[int]
+		want func(*BinarySearchTree[int], error)
+	}{
+		{
+			name: "insert an array of data",
+			data: []int{3, 12, 8, 11, 1, 4, 2, 5},
+			bst:  bst,
+			want: func(bst *BinarySearchTree[int], err error) {
+				is.Nil(err)
+				is.EqualValues(bst.GetSize(), 8)
+
+				is.Equal(bst.Root.GetData(), 3)
+				is.Equal(bst.Root.Left.GetData(), 1)
+				is.Equal(bst.Root.Left.Right.GetData(), 2)
+
+				is.Equal(bst.Root.Right.GetData(), 12)
+				is.Equal(bst.Root.Right.Left.GetData(), 8)
+				is.Equal(bst.Root.Right.Left.Left.GetData(), 4)
+				is.Equal(bst.Root.Right.Left.Right.GetData(), 11)
+				is.Equal(bst.Root.Right.Left.Left.Right.GetData(), 5)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.bst.InsertMany(tt.data...)
 			tt.want(tt.bst, err)
 		})
 	}
@@ -180,9 +176,9 @@ func Test_Contains(t *testing.T) {
 			},
 			bst: bst,
 			setup: func(bst *BinarySearchTree[string]) {
-				bst.Add("B")
-				bst.Add("A")
-				bst.Add("C")
+				bst.InsertMany("B")
+				bst.InsertMany("A")
+				bst.InsertMany("C")
 			},
 			want: func(b bool) {
 				is.True(b)
@@ -223,16 +219,16 @@ func Test_Remove(t *testing.T) {
 			},
 			bst: bst,
 			setup: func(bst *BinarySearchTree[string]) {
-				bst.Add("B")
-				bst.Add("A")
-				bst.Add("C")
+				bst.InsertMany("B")
+				bst.InsertMany("A")
+				bst.InsertMany("C")
 			},
 			want: func(bst *BinarySearchTree[string], err error) {
 				is.Nil(err)
 				is.Equal(bst.Root.GetData(), "B")
 				is.Nil(bst.Root.GetLeft())
 				is.Equal(bst.Root.GetRight().GetData(), "C")
-				is.EqualValues(bst.nodeCount, 2)
+				is.EqualValues(bst.GetSize(), 2)
 			},
 		},
 		{
@@ -242,11 +238,11 @@ func Test_Remove(t *testing.T) {
 			},
 			bst: bst,
 			setup: func(bst *BinarySearchTree[string]) {
-				bst.Add("E")
-				bst.Add("D")
-				bst.Add("I")
-				bst.Add("F")
-				bst.Add("J")
+				bst.InsertMany("E")
+				bst.InsertMany("D")
+				bst.InsertMany("I")
+				bst.InsertMany("F")
+				bst.InsertMany("J")
 			},
 			want: func(bst *BinarySearchTree[string], err error) {
 				is.Nil(err)
@@ -286,9 +282,9 @@ func Test_Height(t *testing.T) {
 			name: "simple BST",
 			bst:  bst,
 			setup: func(bst *BinarySearchTree[string]) {
-				bst.Add("B")
-				bst.Add("A")
-				bst.Add("C")
+				bst.InsertMany("B")
+				bst.InsertMany("A")
+				bst.InsertMany("C")
 			},
 			want: func(height int32) {
 				is.EqualValues(height, 2)
@@ -298,7 +294,7 @@ func Test_Height(t *testing.T) {
 			name: "longer right sub-tree",
 			bst:  bst,
 			setup: func(bst *BinarySearchTree[string]) {
-				bst.Add("D")
+				bst.InsertMany("D")
 			},
 			want: func(height int32) {
 				is.EqualValues(height, 3)
@@ -315,27 +311,4 @@ func Test_Height(t *testing.T) {
 			tt.want(height)
 		})
 	}
-}
-
-func Test_Traverse(t *testing.T) {
-	bst := NewBinarySearchTree[string]()
-	bst.Add("j")
-	bst.Add("f")
-	bst.Add("n")
-	bst.Add("b")
-	bst.Add("h")
-	bst.Add("l")
-	bst.Add("p")
-
-	fmt.Println("=====INORDER TRAVERSAL=====")
-	inOrderTraversal(bst.Root)
-
-	fmt.Println("=====PREORDER TRAVERSAL=====")
-	preOrderTraversal(bst.Root)
-
-	fmt.Println("=====POSTORDER TRAVERSAL=====")
-	postOrderTraversal(bst.Root)
-
-	fmt.Println("=====LEVELORDER TRAVERSAL=====")
-	levelOrderTraversal(bst.Root)
 }
