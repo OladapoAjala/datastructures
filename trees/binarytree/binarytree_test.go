@@ -211,13 +211,7 @@ func Test_Delete(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup()
 			}
-
-			n, err := btree.getNode(tt.index)
-			if err != nil {
-				tt.want(err)
-				return
-			}
-			err = btree.Delete(n)
+			err := btree.Delete(tt.index)
 			tt.want(err)
 		})
 	}
@@ -370,6 +364,20 @@ func Test_InsertBefore(t *testing.T) {
 			tt.want(err)
 		})
 	}
+}
+
+func Test_Contains(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[string]()
+	btree.Insert(0, "a")
+	btree.Insert(1, "b")
+	btree.Insert(0, "c")
+	btree.Insert(1, "d")
+	btree.Insert(0, "e")
+	btree.Insert(4, "f")
+	btree.Insert(3, "g")
+	is.True(btree.Contains("e"))
+	is.False(btree.Contains("j"))
 }
 
 func Test_TraversalOrder(t *testing.T) {

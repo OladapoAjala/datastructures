@@ -18,20 +18,37 @@ type IBinaryTree[T comparable] interface {
 	sequences.Sequencer[T]
 	InsertAfter(*node.Node[T], *node.Node[T]) error
 	InsertBefore(*node.Node[T], *node.Node[T]) error
-	SubTree(*node.Node[T], uint32) (*node.Node[T], error)
+	SubTree(*node.Node[T], int32) (*node.Node[T], error)
 }
 
 // var _ IBinaryTree[string] = new(BinaryTree[string])
 
-func NewBinaryTree[T comparable](data ...T) *BinaryTree[T] {
-	bt := new(BinaryTree[T])
-	for i, item := range data {
-		err := bt.Insert(int32(i), item)
-		if err != nil {
-			return nil
-		}
+// SEQUENCE METHODS
+func (bt *BinaryTree[T]) GetData(index int32) (T, error) {
+	n, err := bt.getNode(index)
+	if err != nil {
+		return *new(T), nil
 	}
-	return bt
+	return n.GetData(), nil
+}
+
+func (bt *BinaryTree[T]) Contains(data T) bool {
+	return bt.contains(bt.Root, data)
+}
+
+func (bt *BinaryTree[T]) contains(n *node.Node[T], data T) bool {
+	if n == nil {
+		return false
+	}
+	if n.Data == data {
+		return true
+	}
+
+	left := bt.contains(n.Left, data)
+	if left {
+		return left
+	}
+	return bt.contains(n.Right, data)
 }
 
 func (bt *BinaryTree[T]) Insert(index int32, data T) error {
@@ -63,22 +80,15 @@ func (bt *BinaryTree[T]) Insert(index int32, data T) error {
 	return nil
 }
 
-func (bt *BinaryTree[T]) updateSize(n *node.Node[T]) {
-	if n == nil {
-		return
+func (bt *BinaryTree[T]) Delete(index int32) error {
+	n, err := bt.getNode(index)
+	if err != nil {
+		return err
 	}
-	var nl, nr int32
-	if n.Left != nil {
-		nl = n.Left.Size
-	}
-	if n.Right != nil {
-		nr = n.Right.Size
-	}
-	n.Size = nl + nr + 1
-	bt.updateSize(n.Parent)
+	return bt.delete(n)
 }
 
-func (bt *BinaryTree[T]) Delete(n *node.Node[T]) error {
+func (bt *BinaryTree[T]) delete(n *node.Node[T]) error {
 	if n.IsLeaf() {
 		if n.Parent.Left == n {
 			n.Parent.Left = nil
@@ -97,7 +107,7 @@ func (bt *BinaryTree[T]) Delete(n *node.Node[T]) error {
 		tmp := pre.Data
 		pre.Data = n.Data
 		n.Data = tmp
-		return bt.Delete(pre)
+		return bt.delete(pre)
 	}
 
 	suc, err := bt.Successor(n)
@@ -107,7 +117,34 @@ func (bt *BinaryTree[T]) Delete(n *node.Node[T]) error {
 	tmp := suc.Data
 	suc.Data = n.Data
 	n.Data = tmp
-	return bt.Delete(suc)
+	return bt.delete(suc)
+}
+
+// TREE METHODS
+func NewBinaryTree[T comparable](data ...T) *BinaryTree[T] {
+	bt := new(BinaryTree[T])
+	for i, item := range data {
+		err := bt.Insert(int32(i), item)
+		if err != nil {
+			return nil
+		}
+	}
+	return bt
+}
+
+func (bt *BinaryTree[T]) updateSize(n *node.Node[T]) {
+	if n == nil {
+		return
+	}
+	var nl, nr int32
+	if n.Left != nil {
+		nl = n.Left.Size
+	}
+	if n.Right != nil {
+		nr = n.Right.Size
+	}
+	n.Size = nl + nr + 1
+	bt.updateSize(n.Parent)
 }
 
 func (bt *BinaryTree[T]) InsertAfter(old, new *node.Node[T]) error {
@@ -172,22 +209,6 @@ func (bt *BinaryTree[T]) SubTree(n *node.Node[T], index int32) *node.Node[T] {
 		return bt.SubTree(n.Right, index-nl-1)
 	}
 	return n
-}
-
-func (bt *BinaryTree[T]) GetData(index int32) (T, error) {
-	n, err := bt.getNode(index)
-	if err != nil {
-		return *new(T), nil
-	}
-	return n.GetData(), nil
-}
-
-func (bt *BinaryTree[T]) getNode(index int32) (*node.Node[T], error) {
-	if index > bt.GetSize() {
-		return nil, fmt.Errorf("index %d is larger than size %d", index, bt.GetSize())
-	}
-
-	return bt.SubTree(bt.Root, index), nil
 }
 
 func (bt *BinaryTree[T]) SubTreeFirst(n *node.Node[T]) (*node.Node[T], error) {
@@ -350,4 +371,13 @@ func (bt *BinaryTree[T]) GetSize() int32 {
 
 func (bt *BinaryTree[T]) GetHeight() int32 {
 	return bt.Height
+}
+
+// UTILITIES
+func (bt *BinaryTree[T]) getNode(index int32) (*node.Node[T], error) {
+	if index > bt.GetSize() {
+		return nil, fmt.Errorf("index %d is larger than size %d", index, bt.GetSize())
+	}
+
+	return bt.SubTree(bt.Root, index), nil
 }
