@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/OladapoAjala/datastructures/trees/node"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -222,264 +223,286 @@ func Test_Delete(t *testing.T) {
 	}
 }
 
-// func Test_InsertAfter(t *testing.T) {
-// 	is := assert.New(t)
-// 	bt := NewBinaryTree[int]()
+func Test_InsertAfter(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[int](10)
 
-// 	type args struct {
-// 		curr *node.Node[int]
-// 		data int
-// 	}
-// 	tests := []struct {
-// 		name  string
-// 		args  args
-// 		setup func(*node.Node[int])
-// 		want  func(error)
-// 	}{
-// 		{
-// 			name: "insert in empty tree",
-// 			args: args{
-// 				curr: node.NewNode(9),
-// 				data: 11,
-// 			},
-// 			want: func(err error) {
-// 				is.Error(fmt.Errorf("empty tree"))
-// 				is.Nil(bt.Root)
-// 				is.EqualValues(bt.GetSize(), 0)
-// 			},
-// 		},
-// 		{
-// 			name: "insert after root node",
-// 			args: args{
-// 				data: 15,
-// 				curr: node.NewNode(10), // root node
-// 			},
-// 			setup: func(n *node.Node[int]) {
-// 				err := bt.insertNode(0, n)
-// 				is.Nil(err)
-// 			},
-// 			want: func(err error) {
-// 				is.Nil(err)
-// 				is.EqualValues(bt.Root.Data, 10)
-// 				is.EqualValues(bt.Root.Right.Data, 15)
-// 				is.EqualValues(bt.GetSize(), 2)
-// 			},
-// 		},
-// 		{
-// 			name: "insert after node with right child",
-// 			args: args{
-// 				data: 20,
-// 				curr: node.NewNode(11),
-// 			},
-// 			setup: func(n *node.Node[int]) {
-// 				err := bt.insertNode(2, n)
-// 				is.Nil(err)
-// 			},
-// 			want: func(err error) {
-// 				is.Nil(err)
-// 				is.EqualValues(bt.Root.Data, 10)
-// 				is.EqualValues(bt.Root.Right.Data, 15)
-// 				is.EqualValues(bt.Root.Right.Left.Data, 20)
-// 				is.EqualValues(bt.GetSize(), 3)
-// 			},
-// 		},
-// 		// {
-// 		// 	name: "insert after node with successor",
-// 		// 	args: args{
-// 		// 		data: 12,
-// 		// 		curr: 8,
-// 		// 	},
-// 		// 	setup: func(val int) {
-// 		// 		n, err := bt.Insert(val)
-// 		// 		is.Nil(err)
-// 		// 		is.Equal(n.Data, val)
-// 		// 	},
-// 		// 	want: func(err error) {
-// 		// 		order, err := bt.TraversalOrder(bt.Root)
-// 		// 		fmt.Println(order)
-// 		// 		is.Nil(err)
-// 		// 	},
-// 		// },
-// 		// {
-// 		// 	name: "insert after non-existent node",
-// 		// 	args: args{
-// 		// 		setup: func(bt *BinaryTree[int], n *node.Node[int]) {
-// 		// 			_ = bt.Insert(10)
-// 		// 		},
-// 		// 		data:    15,
-// 		// 		nodeKey: 5,
-// 		// 	},
-// 		// 	want: func(bt *BinaryTree[int], err error) {
-// 		// 		is.Error(err)
-// 		// 		is.Equal(err.Error(), "node not found in tree")
-// 		// 	},
-// 		// },
-// 		// Add more test cases as needed
-// 	}
+	type args struct {
+		currIndex int32
+		data      *node.Node[int]
+	}
+	tests := []struct {
+		name  string
+		args  args
+		setup func()
+		want  func(error)
+	}{
+		{
+			name: "insert after root node",
+			args: args{
+				data:      node.NewNode[int](15),
+				currIndex: 0,
+			},
+			want: func(err error) {
+				is.Nil(err)
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 15})
+			},
+		},
+		{
+			name: "insert after node with right child",
+			args: args{
+				data:      node.NewNode[int](20),
+				currIndex: 0,
+			},
+			want: func(err error) {
+				is.Nil(err)
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 20, 15})
+			},
+		},
+		{
+			name: "insert after node with an ancestor successor",
+			args: args{
+				data:      node.NewNode[int](13),
+				currIndex: 1,
+			},
+			setup: func() {
+				n, err := btree.getNode(1)
+				is.Nil(err)
+				err = btree.InsertBefore(n, node.NewNode[int](17))
+				is.Nil(err)
+			},
+			want: func(err error) {
+				is.Nil(err)
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 17, 13, 20, 15})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup()
+			}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if tt.setup != nil {
-// 				tt.setup(tt.args.curr)
-// 			}
-// 			err := bt.InsertAfter(tt.args.curr, tt.args.data)
-// 			tt.want(err)
-// 		})
-// 	}
-// }
+			n, err := btree.getNode(tt.args.currIndex)
+			is.Nil(err)
+			err = btree.InsertAfter(n, tt.args.data)
+			tt.want(err)
+		})
+	}
+}
 
-// func Test_TraversalOrder(t *testing.T) {
-// 	// is := assert.New(t)
+func Test_InsertBefore(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[int](10)
 
-// 	type args struct {
-// 		n *node.Node[string]
-// 	}
+	type args struct {
+		currIndex int32
+		data      *node.Node[int]
+	}
+	tests := []struct {
+		name  string
+		args  args
+		setup func()
+		want  func(error)
+	}{
+		{
+			name: "insert before root node",
+			args: args{
+				data:      node.NewNode[int](5),
+				currIndex: 0,
+			},
+			want: func(err error) {
+				is.Nil(err)
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5, 10})
+			},
+		},
+		{
+			name: "insert before node with left child",
+			args: args{
+				data:      node.NewNode[int](7),
+				currIndex: 1,
+			},
+			want: func(err error) {
+				is.Nil(err)
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5, 7, 10})
+			},
+		},
+		{
+			name: "insert before node with ancestor predecessor",
+			args: args{
+				data:      node.NewNode[int](12),
+				currIndex: 1,
+			},
+			setup: func() {
+				n, err := btree.getNode(0)
+				is.Nil(err)
+				err = btree.InsertAfter(n, node.NewNode[int](8))
+				is.Nil(err)
+			},
+			want: func(err error) {
+				is.Nil(err)
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5, 12, 8, 7, 10})
+			},
+		},
+	}
 
-// 	tests := []struct {
-// 		name  string
-// 		args  args
-// 		setup func(*BinaryTree[string])
-// 		want  func([]string, error)
-// 	}{
-// 		{
-// 			name: "Test Case 1",
-// 			args: args{
-// 				n: node.NewNode[string]("alita"),
-// 			},
-// 			setup: func(bt *BinaryTree[string]) {
-// 				// bt.Insert("a")
-// 				// bt.Insert("b")
-// 				// bt.Insert("c")
-// 				// bt.Insert("d")
-// 				// bt.Insert("e")
-// 				// bt.Insert("f")
-// 				// bt.Insert("g")
-// 				// bt.Insert("h")
-// 				// bt.Insert("i")
-// 				// bt.Insert("j")
-// 				// bt.Insert("k")
-// 				// bt.Insert("l")
-// 				// bt.Insert("m")
-// 			},
-// 			want: func(order []string, err error) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup()
+			}
 
-// 			},
-// 		},
-// 	}
+			n, err := btree.getNode(tt.args.currIndex)
+			is.Nil(err)
+			err = btree.InsertBefore(n, tt.args.data)
+			tt.want(err)
+		})
+	}
+}
 
-// 	binaryTree := NewBinaryTree[string]("a", "b", "c", "d", "e")
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if tt.setup != nil {
-// 				tt.setup(binaryTree)
-// 			}
+func Test_TraversalOrder(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[string]()
 
-// 			result, err := binaryTree.TraversalOrder(binaryTree.Root)
-// 			tt.want(result, err)
-// 		})
-// 	}
-// }
+	type args struct {
+		n *node.Node[string]
+	}
 
-// func Test_PreOrderTraversal(t *testing.T) {
-// 	// is := assert.New(t)
+	tests := []struct {
+		name  string
+		args  args
+		setup func()
+		want  func([]string, error)
+	}{
+		{
+			name: "Test Case 1",
+			args: args{
+				n: node.NewNode[string]("alita"),
+			},
+			setup: func() {
+				btree.Insert(0, "a")
+				btree.Insert(1, "b")
+				btree.Insert(0, "c")
+				btree.Insert(1, "d")
+				btree.Insert(0, "e")
+				btree.Insert(4, "f")
+				btree.Insert(3, "g")
+			},
+			want: func(order []string, err error) {
+				is.Nil(err)
+				is.Equal(order, []string{"e", "c", "d", "g", "a", "f", "b"})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup()
+			}
+			order, err := btree.TraversalOrder(btree.Root)
+			tt.want(order, err)
+		})
+	}
+}
 
-// 	type args struct {
-// 		n *node.Node[string]
-// 	}
+func Test_PreOrderTraversal(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[string]()
 
-// 	tests := []struct {
-// 		name  string
-// 		args  args
-// 		setup func(*BinaryTree[string])
-// 		want  func([]string, error)
-// 	}{
-// 		{
-// 			name: "Test Case 1",
-// 			args: args{
-// 				n: node.NewNode[string]("alita"),
-// 			},
-// 			setup: func(bt *BinaryTree[string]) {
-// 				// bt.Insert("a")
-// 				// bt.Insert("b")
-// 				// bt.Insert("c")
-// 				// bt.Insert("d")
-// 				// bt.Insert("e")
-// 				// bt.Insert("f")
-// 				// bt.Insert("g")
-// 				// bt.Insert("h")
-// 				// bt.Insert("i")
-// 				// bt.Insert("j")
-// 				// bt.Insert("k")
-// 				// bt.Insert("l")
-// 				// bt.Insert("m")
-// 			},
-// 			want: func(order []string, err error) {
+	type args struct {
+		n *node.Node[string]
+	}
 
-// 			},
-// 		},
-// 	}
+	tests := []struct {
+		name  string
+		args  args
+		setup func()
+		want  func([]string, error)
+	}{
+		{
+			name: "Test Case 1",
+			args: args{
+				n: node.NewNode[string]("alita"),
+			},
+			setup: func() {
+				btree.Insert(0, "a")
+				btree.Insert(1, "b")
+				btree.Insert(0, "c")
+				btree.Insert(1, "d")
+				btree.Insert(0, "e")
+				btree.Insert(4, "f")
+				btree.Insert(3, "g")
+			},
+			want: func(order []string, err error) {
+				is.Nil(err)
+				is.Equal(order, []string{"a", "c", "e", "d", "g", "b", "f"})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup()
+			}
+			order, err := btree.PreOrderTraversal(btree.Root)
+			tt.want(order, err)
+		})
+	}
+}
 
-// 	binaryTree := NewBinaryTree[string]("a", "b", "c", "d", "e")
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if tt.setup != nil {
-// 				tt.setup(binaryTree)
-// 			}
+func Test_PostOrderTraversal(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[string]()
 
-// 			result, err := binaryTree.PreOrderTraversal(binaryTree.Root)
-// 			tt.want(result, err)
-// 		})
-// 	}
-// }
+	type args struct {
+		n *node.Node[string]
+	}
 
-// func Test_PostOrderTraversal(t *testing.T) {
-// 	// is := assert.New(t)
-
-// 	type args struct {
-// 		n *node.Node[string]
-// 	}
-
-// 	tests := []struct {
-// 		name  string
-// 		args  args
-// 		setup func(*BinaryTree[string])
-// 		want  func([]string, error)
-// 	}{
-// 		{
-// 			name: "Test Case 1",
-// 			args: args{
-// 				n: node.NewNode[string]("alita"),
-// 			},
-// 			setup: func(bt *BinaryTree[string]) {
-// 				// bt.Insert("a")
-// 				// bt.Insert("b")
-// 				// bt.Insert("c")
-// 				// bt.Insert("d")
-// 				// bt.Insert("e")
-// 				// bt.Insert("f")
-// 				// bt.Insert("g")
-// 				// bt.Insert("h")
-// 				// bt.Insert("i")
-// 				// bt.Insert("j")
-// 				// bt.Insert("k")
-// 				// bt.Insert("l")
-// 				// bt.Insert("m")
-// 			},
-// 			want: func(order []string, err error) {
-
-// 			},
-// 		},
-// 	}
-
-// 	binaryTree := NewBinaryTree[string]("a", "b", "c", "d", "e")
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if tt.setup != nil {
-// 				tt.setup(binaryTree)
-// 			}
-
-// 			result, err := binaryTree.PostOrderTraversal(binaryTree.Root)
-// 			tt.want(result, err)
-// 		})
-// 	}
-// }
+	tests := []struct {
+		name  string
+		args  args
+		setup func()
+		want  func([]string, error)
+	}{
+		{
+			name: "Test Case 1",
+			args: args{
+				n: node.NewNode[string]("alita"),
+			},
+			setup: func() {
+				btree.Insert(0, "a")
+				btree.Insert(1, "b")
+				btree.Insert(0, "c")
+				btree.Insert(1, "d")
+				btree.Insert(0, "e")
+				btree.Insert(4, "f")
+				btree.Insert(3, "g")
+			},
+			want: func(order []string, err error) {
+				is.Nil(err)
+				is.Equal(order, []string{"e", "g", "d", "c", "f", "b", "a"})
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup()
+			}
+			order, err := btree.PostOrderTraversal(btree.Root)
+			tt.want(order, err)
+		})
+	}
+}

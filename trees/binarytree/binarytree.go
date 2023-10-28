@@ -13,13 +13,11 @@ type BinaryTree[T comparable] struct {
 	Height int32
 }
 
-// Use subtree to implement other suquence methods.
-
 type IBinaryTree[T comparable] interface {
 	trees.ITrees[T]
 	sequences.Sequencer[T]
-	InsertAfter(T, T) (*node.Node[T], error)
-	InsertBefore(T, T) (*node.Node[T], error)
+	InsertAfter(*node.Node[T], *node.Node[T]) error
+	InsertBefore(*node.Node[T], *node.Node[T]) error
 	SubTree(*node.Node[T], uint32) (*node.Node[T], error)
 }
 
