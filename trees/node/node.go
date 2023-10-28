@@ -2,6 +2,7 @@ package node
 
 type Node[T any] struct {
 	Data   T
+	Size   int32
 	Parent *Node[T]
 	Left   *Node[T]
 	Right  *Node[T]
@@ -10,6 +11,7 @@ type Node[T any] struct {
 func NewNode[T any](data T) *Node[T] {
 	return &Node[T]{
 		Data:  data,
+		Size:  1,
 		Left:  nil,
 		Right: nil,
 	}
