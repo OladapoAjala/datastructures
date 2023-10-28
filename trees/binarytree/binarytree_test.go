@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_BinaryTreeInsert(t *testing.T) {
+func Test_Insert(t *testing.T) {
 	is := assert.New(t)
 	btree := NewBinaryTree[int]()
 
@@ -25,6 +25,10 @@ func Test_BinaryTreeInsert(t *testing.T) {
 				is.Nil(err)
 				is.EqualValues(1, btree.GetSize())
 				is.Equal(btree.Root.Data, 10)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10})
 			},
 		},
 		{
@@ -35,6 +39,10 @@ func Test_BinaryTreeInsert(t *testing.T) {
 				is.Nil(err)
 				is.EqualValues(2, btree.GetSize())
 				is.Equal(btree.Root.Right.Data, 20)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 20})
 			},
 		},
 		{
@@ -47,6 +55,10 @@ func Test_BinaryTreeInsert(t *testing.T) {
 				is.Equal(btree.Root.Data, 10)
 				is.Equal(btree.Root.Right.Data, 20)
 				is.Equal(btree.Root.Right.Left.Data, 15)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 15, 20})
 			},
 		},
 		{
@@ -60,6 +72,10 @@ func Test_BinaryTreeInsert(t *testing.T) {
 				is.Equal(btree.Root.Data, 10)
 				is.Equal(btree.Root.Right.Data, 20)
 				is.Equal(btree.Root.Right.Left.Data, 15)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5, 10, 15, 20})
 			},
 		},
 		{
@@ -73,6 +89,10 @@ func Test_BinaryTreeInsert(t *testing.T) {
 				is.Equal(btree.Root.Data, 10)
 				is.Equal(btree.Root.Right.Data, 20)
 				is.Equal(btree.Root.Right.Left.Data, 15)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5, 10, 15, 20})
 			},
 		},
 		{
@@ -86,6 +106,10 @@ func Test_BinaryTreeInsert(t *testing.T) {
 				is.Equal(btree.Root.Data, 10)
 				is.Equal(btree.Root.Right.Data, 20)
 				is.Equal(btree.Root.Right.Left.Data, 15)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5, 10, 15, 20})
 			},
 		},
 	}
@@ -93,6 +117,106 @@ func Test_BinaryTreeInsert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := btree.Insert(tt.index, tt.data)
+			tt.want(err)
+		})
+	}
+}
+
+func Test_Delete(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[int](10, 5, 15)
+
+	tests := []struct {
+		name  string
+		setup func()
+		index int32
+		want  func(error)
+	}{
+		{
+			name:  "Delete leaf node",
+			index: 2,
+			want: func(err error) {
+				is.Nil(err)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 5})
+			},
+		},
+		{
+			name:  "Delete node with one child",
+			index: 0,
+			want: func(err error) {
+				is.Nil(err)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5})
+			},
+		},
+		{
+			name: "Delete node with two children (predecessor case)",
+			setup: func() {
+				btree = NewBinaryTree[int](10, 5, 15, 3, 8, 12, 20)
+			},
+			index: 2,
+			want: func(err error) {
+				is.Nil(err)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 5, 3, 8, 12, 20})
+			},
+		},
+		{
+			name: "Delete node with two children (successor case)",
+			setup: func() {
+				btree = NewBinaryTree[int](10, 5, 15, 3, 8, 12, 20)
+			},
+			index: 1,
+			want: func(err error) {
+				is.Nil(err)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{10, 15, 3, 8, 12, 20})
+			},
+		},
+		{
+			name: "Delete root node with two children",
+			setup: func() {
+				btree = NewBinaryTree[int](10, 5, 15, 3, 8, 12, 20)
+			},
+			index: 0,
+			want: func(err error) {
+				is.Nil(err)
+
+				o, err := btree.TraversalOrder(btree.Root)
+				is.Nil(err)
+				is.Equal(o, []int{5, 15, 3, 8, 12, 20})
+			},
+		},
+		{
+			name:  "Delete non-existent node",
+			index: 7,
+			want: func(err error) {
+				is.Error(err, fmt.Errorf("index 7 is larger than size %d", btree.GetSize()))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup()
+			}
+
+			n, err := btree.getNode(tt.index)
+			if err != nil {
+				tt.want(err)
+				return
+			}
+			err = btree.Delete(n)
 			tt.want(err)
 		})
 	}
