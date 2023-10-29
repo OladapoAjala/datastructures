@@ -111,8 +111,75 @@ func Test_Contains(t *testing.T) {
 	}
 }
 
+func Test_Set(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		index int32
+		data  string
+	}
+	tests := []struct {
+		name         string
+		dynamicarray *DynamicArray[string]
+		args         args
+		want         func(*DynamicArray[string], error)
+	}{
+		{
+			name:         "set data in empty dynamicarray",
+			dynamicarray: NewDynamicArray[string](),
+			args: args{
+				index: 0,
+				data:  "a",
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.True(da.Contains("a"))
+			},
+		},
+		{
+			name:         "set data in simple dynamicarray",
+			dynamicarray: NewDynamicArray[string]("a", "b", "c"),
+			args: args{
+				index: 1,
+				data:  "d",
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.False(da.Contains("b"))
+				is.Equal(da, NewDynamicArray[string]("a", "d", "c"))
+			},
+		},
+		{
+			name:         "set data at index > array capacity",
+			dynamicarray: NewDynamicArray[string]("a", "b", "c"),
+			args: args{
+				data:  "f",
+				index: 15,
+			},
+			want: func(da *DynamicArray[string], err error) {
+				is.Nil(err)
+				is.True(da.Contains("f"))
+				data, err := da.GetData(15)
+				is.Nil(err)
+				is.Equal(data, "f")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.dynamicarray.Set(tt.args.index, tt.args.data)
+			tt.want(tt.dynamicarray, err)
+		})
+	}
+}
+
 func Test_Insert(t *testing.T) {
 	is := assert.New(t)
+
+	custom := NewDynamicArray[string]()
+	custom.array = []string{"a", "b", "c"}
+	custom.length = 3
+	custom.capacity = 3
 
 	type args struct {
 		index int32
@@ -145,8 +212,8 @@ func Test_Insert(t *testing.T) {
 			},
 			want: func(da *DynamicArray[string], err error) {
 				is.Nil(err)
-				is.False(da.Contains("b"))
-				is.Equal(da, NewDynamicArray[string]("a", "d", "c"))
+				is.True(da.Contains("b"))
+				is.Equal(da.array, []string{"a", "d", "b", "c", "", ""})
 			},
 		},
 		{
@@ -154,14 +221,25 @@ func Test_Insert(t *testing.T) {
 			dynamicarray: NewDynamicArray[string]("a", "b", "c"),
 			args: args{
 				data:  "f",
-				index: 15,
+				index: 5,
 			},
 			want: func(da *DynamicArray[string], err error) {
 				is.Nil(err)
 				is.True(da.Contains("f"))
-				data, err := da.GetData(15)
+				is.Equal(da.array, []string{"a", "b", "c", "", "", "f"})
+			},
+		},
+		{
+			name:         "insert data into custom array",
+			dynamicarray: custom,
+			args: args{
+				data:  "d",
+				index: 1,
+			},
+			want: func(da *DynamicArray[string], err error) {
 				is.Nil(err)
-				is.Equal(data, "f")
+				is.True(da.Contains("d"))
+				is.Equal(da.array, []string{"a", "d", "b", "c", "", ""})
 			},
 		},
 	}

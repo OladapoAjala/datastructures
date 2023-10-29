@@ -19,7 +19,7 @@ type IDynamicArray[T comparable] interface {
 	Capacity() int32
 }
 
-var _ IDynamicArray[string] = new(DynamicArray[string])
+// var _ IDynamicArray[string] = new(DynamicArray[string])
 
 func NewDynamicArray[T comparable](data ...T) *DynamicArray[T] {
 	da := new(DynamicArray[T])
@@ -60,9 +60,25 @@ func (da *DynamicArray[T]) Contains(data T) bool {
 	return false
 }
 
-// TODO: confirm if this should change the order of things.
-func (da *DynamicArray[T]) Insert(index int32, data T) error {
+func (da *DynamicArray[T]) Set(index int32, data T) error {
 	if index >= da.capacity {
+		newArray := make([]T, 2*da.capacity)
+		copy(newArray, da.array)
+		da.array = newArray
+		da.capacity = int32(len(da.array))
+		return da.Set(index, data)
+	}
+
+	da.array[index] = data
+	da.capacity = int32(len(da.array))
+	if index >= da.length {
+		da.length = index + 1
+	}
+	return nil
+}
+
+func (da *DynamicArray[T]) Insert(index int32, data T) error {
+	if index >= da.capacity || da.length == da.capacity {
 		newArray := make([]T, 2*da.capacity)
 		copy(newArray, da.array)
 		da.array = newArray
@@ -70,8 +86,17 @@ func (da *DynamicArray[T]) Insert(index int32, data T) error {
 		return da.Insert(index, data)
 	}
 
-	da.array[index] = data
-	da.capacity = int32(len(da.array))
+	newArray := make([]T, da.capacity)
+	for i := int32(0); i < index; i++ {
+		newArray[i] = da.array[i]
+	}
+	newArray[index] = data
+	for i := index; i < da.length; i++ {
+		newArray[i+1] = da.array[i]
+	}
+
+	da.array = newArray
+	da.capacity = int32(len(newArray))
 	if index >= da.length {
 		da.length = index + 1
 	}
