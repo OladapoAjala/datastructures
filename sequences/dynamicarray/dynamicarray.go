@@ -19,7 +19,7 @@ type IDynamicArray[T comparable] interface {
 	Capacity() int32
 }
 
-// var _ IDynamicArray[string] = new(DynamicArray[string])
+var _ IDynamicArray[string] = new(DynamicArray[string])
 
 func NewDynamicArray[T comparable](data ...T) *DynamicArray[T] {
 	da := new(DynamicArray[T])
@@ -126,7 +126,7 @@ func (da *DynamicArray[T]) Delete(index int32) error {
 	da.shift(index)
 	da.length--
 
-	if da.Size() <= da.Capacity()/4 {
+	if da.GetSize() <= da.Capacity()/4 {
 		output := make([]T, da.Capacity()/2)
 		copy(output, da.array)
 		da.array = output
@@ -137,7 +137,7 @@ func (da *DynamicArray[T]) Delete(index int32) error {
 }
 
 func (da *DynamicArray[T]) shift(index int32) {
-	for i := index; i < da.Size(); i++ {
+	for i := index; i < da.GetSize(); i++ {
 		da.array[i] = da.array[i+1]
 	}
 }
@@ -153,7 +153,7 @@ func (da *DynamicArray[T]) DeleteLast() error {
 	return da.Delete(da.length - 1)
 }
 
-func (da *DynamicArray[T]) Size() int32 {
+func (da *DynamicArray[T]) GetSize() int32 {
 	return da.length
 }
 

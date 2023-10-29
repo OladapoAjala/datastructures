@@ -17,7 +17,7 @@ type IStaticArray[T comparable] interface {
 	ToLinkedList() (*linkedlist.LinkedList[T], error)
 }
 
-// var _ IStaticArray[string] = new(StaticArray[string])
+var _ IStaticArray[string] = new(StaticArray[string])
 
 func NewStaticArray[T comparable](size int32, data ...T) *StaticArray[T] {
 	sa := new(StaticArray[T])
@@ -87,10 +87,10 @@ func (sa *StaticArray[T]) Delete(index int32) error {
 }
 
 func (sa *StaticArray[T]) shift(index int32) {
-	for i := index; i < sa.Size()-1; i++ {
+	for i := index; i < sa.GetSize()-1; i++ {
 		sa.array[i] = sa.array[i+1]
 	}
-	sa.array[sa.Size()-1] = *new(T)
+	sa.array[sa.GetSize()-1] = *new(T)
 }
 
 func (sa *StaticArray[T]) DeleteFirst() error {
@@ -101,7 +101,7 @@ func (sa *StaticArray[T]) DeleteLast() error {
 	return sa.Delete(sa.length - 1)
 }
 
-func (sa *StaticArray[T]) Size() int32 {
+func (sa *StaticArray[T]) GetSize() int32 {
 	return sa.length
 }
 
