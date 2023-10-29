@@ -19,7 +19,7 @@ func TestStack_Peek(t *testing.T) {
 			name:  "peek top of stack with three layers",
 			stack: testStack,
 			want: func(v any) bool {
-				return v == 'c' && testStack.Size() == 3
+				return v == 'c' && testStack.GetSize() == 3
 			},
 		},
 	}
@@ -54,7 +54,7 @@ func TestStack_Pop(t *testing.T) {
 			name:  "pop from top of stack",
 			Stack: testStack,
 			want: func(s any) bool {
-				return s == 'c' && testStack.Size() == 2
+				return s == 'c' && testStack.GetSize() == 2
 			},
 		},
 	}
@@ -96,7 +96,7 @@ func TestStack_Push(t *testing.T) {
 			},
 			want: func(s *Stack[rune]) bool {
 				got, _ := s.Peek()
-				return got == 'd' && s.Size() == 4
+				return got == 'd' && s.GetSize() == 4
 			},
 		},
 	}

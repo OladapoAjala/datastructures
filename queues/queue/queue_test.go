@@ -21,7 +21,7 @@ func TestQueue_Enqueue(t *testing.T) {
 				data: "A",
 			},
 			want: func(q *Queue[string]) bool {
-				return q.Head.Data == "A" && q.Size() == 1
+				return q.Head.Data == "A" && q.GetSize() == 1
 			},
 		},
 	}
@@ -55,21 +55,21 @@ func TestQueue_Dequeue(t *testing.T) {
 			name:  "dequeue element",
 			queue: testQueue,
 			want: func(q *Queue[string], got any) bool {
-				return q.Head.Data == "B" && got == "A" && q.Size() == 2
+				return q.Head.Data == "B" && got == "A" && q.GetSize() == 2
 			},
 		},
 		{
 			name:  "deque another element",
 			queue: testQueue,
 			want: func(q *Queue[string], got any) bool {
-				return q.Head.Data == "C" && got == "B" && q.Size() == 1
+				return q.Head.Data == "C" && got == "B" && q.GetSize() == 1
 			},
 		},
 		{
 			name:  "remove last element from queue",
 			queue: testQueue,
 			want: func(q *Queue[string], got any) bool {
-				return q.Head == nil && got == "C" && q.Size() == 0
+				return q.Head == nil && got == "C" && q.GetSize() == 0
 			},
 		},
 	}

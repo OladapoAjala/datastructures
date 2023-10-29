@@ -75,7 +75,7 @@ func (h *HashTable[K]) resize() error {
 			continue
 		}
 
-		for i := int32(0); i < ll.Size(); i++ {
+		for i := int32(0); i < ll.GetSize(); i++ {
 			node, err := ll.GetNode(i)
 			if err != nil {
 				return fmt.Errorf("error resizing table %w", err)
@@ -145,7 +145,7 @@ func (h *HashTable[K]) Delete(key K) error {
 	}
 
 	h.size--
-	if h.Table[pos].Size() == 0 {
+	if h.Table[pos].GetSize() == 0 {
 		h.Table[pos] = nil
 	}
 
