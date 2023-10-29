@@ -84,7 +84,7 @@ func Test_Insert(t *testing.T) {
 			index: 5,
 			data:  25,
 			want: func(err error) {
-				is.Error(err, fmt.Errorf("index 5 is larger than size 4"))
+				is.Error(err, fmt.Errorf("index 5 is out of range"))
 				is.EqualValues(4, btree.GetSize())
 				is.Equal(btree.Root.Left.Data, 5)
 				is.Equal(btree.Root.Data, 10)
@@ -201,7 +201,7 @@ func Test_Delete(t *testing.T) {
 			name:  "Delete non-existent node",
 			index: 7,
 			want: func(err error) {
-				is.Error(err, fmt.Errorf("index 7 is larger than size %d", btree.GetSize()))
+				is.Error(err, fmt.Errorf("index 7 is out of range"))
 			},
 		},
 	}
@@ -378,6 +378,92 @@ func Test_Contains(t *testing.T) {
 	btree.Insert(3, "g")
 	is.True(btree.Contains("e"))
 	is.False(btree.Contains("j"))
+}
+
+func Test_InsertFirst(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[string]()
+	btree.Insert(0, "a")
+	btree.Insert(1, "b")
+	btree.Insert(0, "c")
+	btree.Insert(1, "d")
+	btree.Insert(0, "e")
+	btree.Insert(4, "f")
+	btree.Insert(3, "g")
+
+	btree.InsertFirst("z")
+	o, err := btree.TraversalOrder(btree.Root)
+	is.Nil(err)
+	is.Equal(o, []string{"z", "e", "c", "d", "g", "a", "f", "b"})
+}
+
+func Test_InsertLast(t *testing.T) {
+	is := assert.New(t)
+	btree := NewBinaryTree[string]()
+	btree.Insert(0, "a")
+	btree.Insert(1, "b")
+	btree.Insert(0, "c")
+	btree.Insert(1, "d")
+	btree.Insert(0, "e")
+	btree.Insert(4, "f")
+	btree.Insert(3, "g")
+
+	btree.InsertLast("z")
+	o, err := btree.TraversalOrder(btree.Root)
+	is.Nil(err)
+	is.Equal(o, []string{"e", "c", "d", "g", "a", "f", "b", "z"})
+}
+
+func Test_DeleteFirst(t *testing.T) {
+	is := assert.New(t)
+
+	tests := []struct {
+		name string
+		bt   *BinaryTree[string]
+		want func(*BinaryTree[string], error)
+	}{
+		{
+			name: "simple delete first",
+			bt:   NewBinaryTree("Node 0", "Node 1"),
+			want: func(bt *BinaryTree[string], err error) {
+				is.Nil(err)
+				is.False(bt.Contains("Node 0"))
+
+				data, err := bt.GetData(0)
+				is.Nil(err)
+				is.Equal(data, "Node 1")
+			},
+		},
+		{
+			name: "delete first (only node)",
+			bt:   NewBinaryTree("A"),
+			want: func(bt *BinaryTree[string], err error) {
+				is.Nil(err)
+				is.False(bt.Contains("A"))
+
+				data, err := bt.GetData(0)
+				is.Empty(data)
+				is.Error(err, fmt.Errorf("index 0 is out of range"))
+			},
+		},
+		{
+			name: "delete first (empty node)",
+			bt:   NewBinaryTree[string](),
+			want: func(bt *BinaryTree[string], err error) {
+				is.Error(err, fmt.Errorf("cannot delete from empty tree"))
+
+				data, err := bt.GetData(0)
+				is.Empty(data)
+				is.Error(err, fmt.Errorf("index 0 is out of range"))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.bt.DeleteFirst()
+			tt.want(tt.bt, err)
+		})
+	}
 }
 
 func Test_TraversalOrder(t *testing.T) {

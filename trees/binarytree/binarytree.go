@@ -18,16 +18,16 @@ type IBinaryTree[T comparable] interface {
 	sequences.Sequencer[T]
 	InsertAfter(*node.Node[T], *node.Node[T]) error
 	InsertBefore(*node.Node[T], *node.Node[T]) error
-	SubTree(*node.Node[T], int32) (*node.Node[T], error)
+	SubTree(*node.Node[T], int32) *node.Node[T]
 }
 
-// var _ IBinaryTree[string] = new(BinaryTree[string])
+var _ IBinaryTree[string] = new(BinaryTree[string])
 
 // SEQUENCE METHODS
 func (bt *BinaryTree[T]) GetData(index int32) (T, error) {
 	n, err := bt.getNode(index)
 	if err != nil {
-		return *new(T), nil
+		return *new(T), err
 	}
 	return n.GetData(), nil
 }
@@ -81,6 +81,10 @@ func (bt *BinaryTree[T]) Insert(index int32, data T) error {
 }
 
 func (bt *BinaryTree[T]) Delete(index int32) error {
+	if bt.Root == nil {
+		return fmt.Errorf("cannot delete from empty tree")
+	}
+
 	n, err := bt.getNode(index)
 	if err != nil {
 		return err
@@ -90,7 +94,9 @@ func (bt *BinaryTree[T]) Delete(index int32) error {
 
 func (bt *BinaryTree[T]) delete(n *node.Node[T]) error {
 	if n.IsLeaf() {
-		if n.Parent.Left == n {
+		if n == bt.Root {
+			bt.Root = nil
+		} else if n.Parent.Left == n {
 			n.Parent.Left = nil
 		} else {
 			n.Parent.Right = nil
@@ -118,6 +124,31 @@ func (bt *BinaryTree[T]) delete(n *node.Node[T]) error {
 	suc.Data = n.Data
 	n.Data = tmp
 	return bt.delete(suc)
+}
+
+func (bt *BinaryTree[T]) Set(index int32, data T) error {
+	n, err := bt.getNode(index)
+	if err != nil {
+		return err
+	}
+	n.Data = data
+	return nil
+}
+
+func (bt *BinaryTree[T]) InsertFirst(data T) error {
+	return bt.Insert(0, data)
+}
+
+func (bt *BinaryTree[T]) InsertLast(data T) error {
+	return bt.Insert(bt.GetSize(), data)
+}
+
+func (bt *BinaryTree[T]) DeleteFirst() error {
+	return bt.Delete(0)
+}
+
+func (bt *BinaryTree[T]) DeleteLast() error {
+	return bt.Delete(bt.GetSize() - 1)
 }
 
 // TREE METHODS
@@ -369,15 +400,18 @@ func (bt *BinaryTree[T]) GetSize() int32 {
 	return bt.Root.Size
 }
 
+func (bt *BinaryTree[T]) IsEmpty() bool {
+	return bt.Root == nil
+}
+
 func (bt *BinaryTree[T]) GetHeight() int32 {
 	return bt.Height
 }
 
 // UTILITIES
 func (bt *BinaryTree[T]) getNode(index int32) (*node.Node[T], error) {
-	if index > bt.GetSize() {
-		return nil, fmt.Errorf("index %d is larger than size %d", index, bt.GetSize())
+	if index >= bt.GetSize() {
+		return nil, fmt.Errorf("index %d is out of range", index)
 	}
-
 	return bt.SubTree(bt.Root, index), nil
 }
