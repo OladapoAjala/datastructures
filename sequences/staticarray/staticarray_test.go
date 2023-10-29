@@ -112,6 +112,65 @@ func Test_Contains(t *testing.T) {
 	}
 }
 
+func Test_Set(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		index int32
+		data  string
+	}
+	tests := []struct {
+		name        string
+		staticarray *StaticArray[string]
+		args        args
+		want        func(*StaticArray[string], error)
+	}{
+		{
+			name:        "set data in empty staticarray",
+			staticarray: NewStaticArray[string](0),
+			args: args{
+				index: 0,
+				data:  "a",
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Error(err, "index out of range")
+			},
+		},
+		{
+			name:        "set data in simple staticarray",
+			staticarray: NewStaticArray[string](3, "a", "b", "c"),
+			args: args{
+				index: 1,
+				data:  "d",
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Nil(err)
+				is.False(sa.Contains("b"))
+				data, err := sa.GetData(1)
+				is.Nil(err)
+				is.Equal(data, "d")
+			},
+		},
+		{
+			name:        "set data at index > array size",
+			staticarray: NewStaticArray[string](5, "a", "b", "c", "d", "e"),
+			args: args{
+				data:  "f",
+				index: 6,
+			},
+			want: func(sa *StaticArray[string], err error) {
+				is.Error(fmt.Errorf("index out of range"))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.staticarray.Set(tt.args.index, tt.args.data)
+			tt.want(tt.staticarray, err)
+		})
+	}
+}
+
 func Test_Insert(t *testing.T) {
 	is := assert.New(t)
 
@@ -145,10 +204,7 @@ func Test_Insert(t *testing.T) {
 			},
 			want: func(sa *StaticArray[string], err error) {
 				is.Nil(err)
-				is.False(sa.Contains("b"))
-				data, err := sa.GetData(1)
-				is.Nil(err)
-				is.Equal(data, "d")
+				is.Equal(sa.array, []string{"a", "d", "b"})
 			},
 		},
 		{

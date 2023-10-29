@@ -17,7 +17,7 @@ type IStaticArray[T comparable] interface {
 	ToLinkedList() (*linkedlist.LinkedList[T], error)
 }
 
-var _ IStaticArray[string] = new(StaticArray[string])
+// var _ IStaticArray[string] = new(StaticArray[string])
 
 func NewStaticArray[T comparable](size int32, data ...T) *StaticArray[T] {
 	sa := new(StaticArray[T])
@@ -43,12 +43,29 @@ func (sa *StaticArray[T]) Contains(data T) bool {
 	return false
 }
 
-func (sa *StaticArray[T]) Insert(index int32, data T) error {
+func (sa *StaticArray[T]) Set(index int32, data T) error {
 	if index >= sa.length {
 		return fmt.Errorf("index out of range")
 	}
 
 	sa.array[index] = data
+	return nil
+}
+
+func (sa *StaticArray[T]) Insert(index int32, data T) error {
+	if index >= sa.length {
+		return fmt.Errorf("index out of range")
+	}
+
+	newArray := make([]T, sa.length)
+	for i := int32(0); i < index; i++ {
+		newArray[i] = sa.array[i]
+	}
+	newArray[index] = data
+	for i := index; i < sa.length-1; i++ {
+		newArray[i+1] = sa.array[i]
+	}
+	sa.array = newArray
 	return nil
 }
 
