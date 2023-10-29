@@ -95,7 +95,6 @@ func (l *LinkedList[T]) InsertLast(data T) error {
 	l.Tail.Next = newNode
 	l.Tail = newNode
 	l.length++
-
 	return nil
 }
 
@@ -104,7 +103,7 @@ func (l *LinkedList[T]) Insert(index int32, data T) error {
 		return l.InsertFirst(data)
 	}
 
-	if index >= l.Size() {
+	if index >= l.GetSize() {
 		return l.InsertLast(data)
 	}
 
@@ -113,6 +112,26 @@ func (l *LinkedList[T]) Insert(index int32, data T) error {
 		return fmt.Errorf("insertion failed: %v", err)
 	}
 
+	newNode := node.NewNode[T]()
+	newNode.Data = data
+	newNode.Prev = oldNode.Prev
+	newNode.Next = oldNode
+
+	oldNode.Prev.Next = newNode
+	oldNode.Prev = newNode
+	l.length++
+	return nil
+}
+
+func (l *LinkedList[T]) Set(index int32, data T) error {
+	if index >= l.GetSize() {
+		return fmt.Errorf("index out of range")
+	}
+
+	oldNode, err := l.GetNode(index)
+	if err != nil {
+		return fmt.Errorf("insertion failed: %v", err)
+	}
 	oldNode.Data = data
 	return nil
 }
@@ -122,7 +141,7 @@ func (l *LinkedList[T]) IsEmpty() bool {
 }
 
 func (l *LinkedList[T]) Delete(index int32) error {
-	if index >= l.Size() {
+	if index >= l.GetSize() {
 		return fmt.Errorf("index out of range")
 	}
 
@@ -134,7 +153,7 @@ func (l *LinkedList[T]) Delete(index int32) error {
 		return l.DeleteFirst()
 	}
 
-	if index == l.Size()-1 {
+	if index == l.GetSize()-1 {
 		return l.DeleteLast()
 	}
 
@@ -154,7 +173,7 @@ func (l *LinkedList[T]) DeleteFirst() error {
 		return fmt.Errorf("cannot remove from empty list")
 	}
 
-	if l.Size() == 1 {
+	if l.GetSize() == 1 {
 		l.Tail = nil
 		l.Head = nil
 		l.length--
@@ -172,7 +191,7 @@ func (l *LinkedList[T]) DeleteLast() error {
 		return fmt.Errorf("cannot remove from empty list")
 	}
 
-	if l.Size() == 1 {
+	if l.GetSize() == 1 {
 		l.Tail = nil
 		l.Head = nil
 		l.length--
@@ -211,12 +230,12 @@ func (l *LinkedList[T]) Reverse() error {
 	return nil
 }
 
-func (l *LinkedList[T]) Size() int32 {
+func (l *LinkedList[T]) GetSize() int32 {
 	return l.length
 }
 
 func (l *LinkedList[T]) ToArray() ([]T, error) {
-	array := make([]T, l.Size())
+	array := make([]T, l.GetSize())
 	i := 0
 	for it := l.Head; it != nil; it = it.Next {
 		array[i] = it.Data

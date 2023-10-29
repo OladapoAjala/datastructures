@@ -137,7 +137,41 @@ func TestLinkedList_InsertFirst(t *testing.T) {
 	}
 }
 
+func TestLinkedList_Set(t *testing.T) {
+	type args struct {
+		index int32
+		data  string
+	}
+	tests := []struct {
+		name string
+		list *LinkedList[string]
+		args args
+		want func(*LinkedList[string]) bool
+	}{
+		{
+			name: "insert into a list with two nodes",
+			list: NewList("Node 0", "Node 1"),
+			args: args{
+				index: 1,
+				data:  "Node 2",
+			},
+			want: func(l *LinkedList[string]) bool {
+				return l.Head.Next.Data == "Node 2"
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.list.Set(tt.args.index, tt.args.data)
+			if !tt.want(tt.list) {
+				t.Errorf("Error inserting into list")
+			}
+		})
+	}
+}
+
 func TestLinkedList_Insert(t *testing.T) {
+	is := assert.New(t)
 	testList := NewList("Node 0", "Node 1")
 
 	type args struct {
@@ -158,6 +192,8 @@ func TestLinkedList_Insert(t *testing.T) {
 				data:  "Node 2",
 			},
 			want: func(l *LinkedList[string]) bool {
+				is.Equal(l.Head.Data, "Node 0")
+				is.Equal(l.Head.Next.Next.Data, "Node 1")
 				return l.Head.Next.Data == "Node 2"
 			},
 		},
@@ -193,7 +229,7 @@ func TestLinkedList_Delete(t *testing.T) {
 			list: NewList("Node 0", "Node 1"),
 			want: func(ll *LinkedList[string], err error) {
 				is.Nil(err)
-				is.EqualValues(ll.Size(), 1)
+				is.EqualValues(ll.GetSize(), 1)
 				is.False(ll.Contains("Node 0"))
 
 				node, err := ll.GetNode(0)
@@ -209,7 +245,7 @@ func TestLinkedList_Delete(t *testing.T) {
 			list: NewList("A", "B", "C"),
 			want: func(ll *LinkedList[string], err error) {
 				is.Nil(err)
-				is.EqualValues(ll.Size(), 2)
+				is.EqualValues(ll.GetSize(), 2)
 				is.False(ll.Contains("C"))
 
 				node, err := ll.GetNode(2)
@@ -225,7 +261,7 @@ func TestLinkedList_Delete(t *testing.T) {
 			list: NewList("Node 0", "Node 1", "Node 2"),
 			want: func(ll *LinkedList[string], err error) {
 				is.Nil(err)
-				is.EqualValues(ll.Size(), 2)
+				is.EqualValues(ll.GetSize(), 2)
 				is.False(ll.Contains("Node 1"))
 
 				node, err := ll.GetNode(1)
@@ -243,7 +279,7 @@ func TestLinkedList_Delete(t *testing.T) {
 				is.Nil(err)
 				is.Nil(ll.Head)
 				is.Nil(ll.Tail)
-				is.EqualValues(ll.Size(), 0)
+				is.EqualValues(ll.GetSize(), 0)
 			},
 		},
 	}
@@ -268,7 +304,7 @@ func TestLinkedList_DeleteFirst(t *testing.T) {
 			list: NewList("Node 0", "Node 1"),
 			want: func(ll *LinkedList[string], err error) {
 				is.Nil(err)
-				is.EqualValues(ll.Size(), 1)
+				is.EqualValues(ll.GetSize(), 1)
 				is.False(ll.Contains("Node 0"))
 
 				data, err := ll.GetData(0)
@@ -281,7 +317,7 @@ func TestLinkedList_DeleteFirst(t *testing.T) {
 			list: NewList("A"),
 			want: func(ll *LinkedList[string], err error) {
 				is.Nil(err)
-				is.EqualValues(ll.Size(), 0)
+				is.EqualValues(ll.GetSize(), 0)
 				is.False(ll.Contains("A"))
 
 				data, err := ll.GetData(0)
@@ -294,7 +330,7 @@ func TestLinkedList_DeleteFirst(t *testing.T) {
 			list: NewList[string](),
 			want: func(ll *LinkedList[string], err error) {
 				is.Error(err, "cannot remove from empty list")
-				is.EqualValues(ll.Size(), 0)
+				is.EqualValues(ll.GetSize(), 0)
 
 				node, err := ll.GetNode(0)
 				is.Nil(node)
