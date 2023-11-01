@@ -2,6 +2,7 @@ package binarytree
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/OladapoAjala/datastructures/sequences"
 	"github.com/OladapoAjala/datastructures/trees"
@@ -9,8 +10,7 @@ import (
 )
 
 type BinaryTree[T comparable] struct {
-	Root   *node.Node[T]
-	Height int32
+	Root *node.Node[T]
 }
 
 type IBinaryTree[T comparable] interface {
@@ -68,7 +68,7 @@ func (bt *BinaryTree[T]) Insert(index int32, data T) error {
 		last := bt.SubTree(bt.Root, bt.GetSize()-1)
 		last.Right = newNode
 		newNode.Parent = last
-		bt.updateSize(last)
+		bt.update(last)
 		return nil
 	}
 
@@ -101,7 +101,7 @@ func (bt *BinaryTree[T]) delete(n *node.Node[T]) error {
 		} else {
 			n.Parent.Right = nil
 		}
-		bt.updateSize(n.Parent)
+		bt.update(n.Parent)
 		return nil
 	}
 
@@ -163,19 +163,27 @@ func NewBinaryTree[T comparable](data ...T) *BinaryTree[T] {
 	return bt
 }
 
-func (bt *BinaryTree[T]) updateSize(n *node.Node[T]) {
+func (bt *BinaryTree[T]) update(n *node.Node[T]) {
 	if n == nil {
 		return
 	}
 	var nl, nr int32
+	var hl, hr int32
 	if n.Left != nil {
 		nl = n.Left.Size
+		hl = n.Left.Height
+	} else {
+		hl = -1
 	}
 	if n.Right != nil {
 		nr = n.Right.Size
+		hr = n.Right.Height
+	} else {
+		hr = -1
 	}
 	n.Size = nl + nr + 1
-	bt.updateSize(n.Parent)
+	n.Height = 1 + int32(math.Max(float64(hl), float64(hr)))
+	bt.update(n.Parent)
 }
 
 func (bt *BinaryTree[T]) InsertAfter(old, new *node.Node[T]) error {
@@ -189,7 +197,7 @@ func (bt *BinaryTree[T]) InsertAfter(old, new *node.Node[T]) error {
 	if old.Right == nil {
 		old.Right = new
 		new.Parent = old
-		bt.updateSize(old)
+		bt.update(old)
 		return nil
 	}
 
@@ -199,7 +207,7 @@ func (bt *BinaryTree[T]) InsertAfter(old, new *node.Node[T]) error {
 	}
 	successor.Left = new
 	new.Parent = successor
-	bt.updateSize(successor)
+	bt.update(successor)
 	return nil
 }
 
@@ -214,7 +222,7 @@ func (bt *BinaryTree[T]) InsertBefore(old, new *node.Node[T]) error {
 	if old.Left == nil {
 		old.Left = new
 		new.Parent = old
-		bt.updateSize(old)
+		bt.update(old)
 		return nil
 	}
 
@@ -224,7 +232,7 @@ func (bt *BinaryTree[T]) InsertBefore(old, new *node.Node[T]) error {
 	}
 	predecessor.Right = new
 	new.Parent = predecessor
-	bt.updateSize(predecessor)
+	bt.update(predecessor)
 	return nil
 }
 
@@ -405,7 +413,7 @@ func (bt *BinaryTree[T]) IsEmpty() bool {
 }
 
 func (bt *BinaryTree[T]) GetHeight() int32 {
-	return bt.Height
+	return bt.Root.Height
 }
 
 // UTILITIES
