@@ -167,21 +167,21 @@ func (bt *BinaryTree[T]) update(n *node.Node[T]) {
 	if n == nil {
 		return
 	}
-	var nl, nr int32
+	var sl, sr int32
 	var hl, hr int32
 	if n.Left != nil {
-		nl = n.Left.Size
+		sl = n.Left.Size
 		hl = n.Left.Height
 	} else {
 		hl = -1
 	}
 	if n.Right != nil {
-		nr = n.Right.Size
+		sr = n.Right.Size
 		hr = n.Right.Height
 	} else {
 		hr = -1
 	}
-	n.Size = nl + nr + 1
+	n.Size = sl + sr + 1
 	n.Height = 1 + int32(math.Max(float64(hl), float64(hr)))
 	bt.update(n.Parent)
 }
@@ -237,15 +237,15 @@ func (bt *BinaryTree[T]) InsertBefore(old, new *node.Node[T]) error {
 }
 
 func (bt *BinaryTree[T]) SubTree(n *node.Node[T], index int32) *node.Node[T] {
-	var nl int32 = 0
+	var sl int32 = 0
 	if n.Left != nil {
-		nl = n.Left.Size
+		sl = n.Left.Size
 	}
 
-	if index < nl {
+	if index < sl {
 		return bt.SubTree(n.Left, index)
-	} else if index > nl {
-		return bt.SubTree(n.Right, index-nl-1)
+	} else if index > sl {
+		return bt.SubTree(n.Right, index-sl-1)
 	}
 	return n
 }
