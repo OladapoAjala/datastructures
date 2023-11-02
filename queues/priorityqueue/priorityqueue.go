@@ -5,6 +5,12 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+type IQueuer[K any] interface {
+	Insert(K)
+	DeleteMax()
+	FindMax()
+}
+
 type PQueue[T constraints.Ordered] struct {
 	*heap.Heap[T]
 }
