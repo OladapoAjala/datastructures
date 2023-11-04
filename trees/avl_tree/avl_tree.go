@@ -68,7 +68,7 @@ func (avl *AVLTree[T]) Insert(index int32, data T) error {
 		last := avl.SubTree(avl.Root, avl.GetSize()-1)
 		last.Right = newNode
 		newNode.Parent = last
-		avl.update(last)
+		avl.balance(last)
 		return nil
 	}
 
@@ -101,7 +101,7 @@ func (avl *AVLTree[T]) delete(n *node.Node[T]) error {
 		} else {
 			n.Parent.Right = nil
 		}
-		avl.update(n.Parent)
+		avl.balance(n.Parent)
 		return nil
 	}
 
@@ -167,47 +167,87 @@ func (avl *AVLTree[T]) update(n *node.Node[T]) {
 	if n == nil {
 		return
 	}
-	var nl, nr int32
-	var hl, hr int32
+	var hl, hr int32 = -1, -1
 	if n.Left != nil {
-		nl = n.Left.Size
 		hl = n.Left.Height
-	} else {
-		hl = -1
 	}
 	if n.Right != nil {
-		nr = n.Right.Size
 		hr = n.Right.Height
-	} else {
-		hr = -1
 	}
-	n.Size = nl + nr + 1
 	n.Height = 1 + int32(math.Max(float64(hl), float64(hr)))
-	avl.balance(n)
-	avl.update(n.Parent)
 }
 
 func (avl *AVLTree[T]) balance(n *node.Node[T]) {
+	if n == nil {
+		return
+	}
+
 	skew := n.Skew()
 	if skew == 2 {
 		if n.Right.Skew() >= 0 {
-			// right=right case
-			n.LeftRotate()
+			avl.RotateLeft(n)
 		} else {
-			// right-left case
-			n.Right.RightRotate()
-			n.LeftRotate()
+			avl.RotateRight(n.Right)
+			avl.RotateLeft(n)
 		}
 	} else if skew == -2 {
 		if n.Left.Skew() <= 0 {
-			// left-left case
-			n.RightRotate()
+			avl.RotateRight(n)
 		} else {
-			// left-right case
-			n.Left.LeftRotate()
-			n.RightRotate()
+			avl.RotateLeft(n.Left)
+			avl.RotateRight(n)
 		}
 	}
+	avl.update(n)
+	avl.balance(n.Parent)
+}
+
+func (avl *AVLTree[T]) RotateRight(n *node.Node[T]) {
+	parent := n.Parent
+	left := n.Left
+	n.Left = left.Right
+	if left.Right != nil {
+		left.Right.Parent = n
+	}
+	left.Right = n
+	n.Parent = left
+	left.Parent = parent
+	if parent == nil {
+		avl.Root = left
+		return
+	}
+
+	if parent.Left == n {
+		parent.Left = left
+	} else {
+		parent.Right = left
+	}
+	avl.update(left)
+	avl.update(n)
+}
+
+func (avl *AVLTree[T]) RotateLeft(n *node.Node[T]) {
+	parent := n.Parent
+	right := n.Right
+	n.Right = right.Left
+	if right.Left != nil {
+		right.Left.Parent = n
+	}
+	right.Left = n
+	n.Parent = right
+	right.Parent = parent
+	if parent != nil {
+		avl.Root = right
+		return
+	}
+
+	if parent.Right == n {
+		parent.Right = right
+	} else {
+		parent.Left = right
+	}
+	avl.update(right)
+	avl.update(n)
 }
 
 func (avl *AVLTree[T]) InsertAfter(old, new *node.Node[T]) error {
@@ -221,7 +261,7 @@ func (avl *AVLTree[T]) InsertAfter(old, new *node.Node[T]) error {
 	if old.Right == nil {
 		old.Right = new
 		new.Parent = old
-		avl.update(old)
+		avl.balance(old)
 		return nil
 	}
 
@@ -231,7 +271,7 @@ func (avl *AVLTree[T]) InsertAfter(old, new *node.Node[T]) error {
 	}
 	successor.Left = new
 	new.Parent = successor
-	avl.update(successor)
+	avl.balance(successor)
 	return nil
 }
 
@@ -246,7 +286,7 @@ func (avl *AVLTree[T]) InsertBefore(old, new *node.Node[T]) error {
 	if old.Left == nil {
 		old.Left = new
 		new.Parent = old
-		avl.update(old)
+		avl.balance(old)
 		return nil
 	}
 
@@ -256,7 +296,7 @@ func (avl *AVLTree[T]) InsertBefore(old, new *node.Node[T]) error {
 	}
 	predecessor.Right = new
 	new.Parent = predecessor
-	avl.update(predecessor)
+	avl.balance(predecessor)
 	return nil
 }
 

@@ -5,32 +5,30 @@ import (
 	"math"
 
 	"github.com/OladapoAjala/datastructures/queues/queue"
+	"github.com/OladapoAjala/datastructures/sets"
 	"github.com/OladapoAjala/datastructures/trees"
-	"github.com/OladapoAjala/datastructures/trees/binarytree"
 	"github.com/OladapoAjala/datastructures/trees/node"
 	"golang.org/x/exp/constraints"
 )
 
 type BinarySearchTree[T constraints.Ordered] struct {
-	*binarytree.BinaryTree[T]
+	Root   *node.Node[T]
+	Size   int32
+	Height int32
 }
 
 type IBinarySearchTree[T constraints.Ordered] interface {
 	trees.ITrees[T]
-	Insert(T) (*node.Node[T], error)
-	Find(T) (*node.Node[T], error)
-	Delete(T) error
-	// Insert(T) error
-	// Sequence() *sequences.Sequencer[T]
-	// Set() *sets.Seter[T, any]
+	sets.Seter[T, any]
+	// Insert(T) (*node.Node[T], error)
+	// Delete(T) error
+	// Find(T) (*node.Node[T], error)
 }
 
-var _ IBinarySearchTree[string] = new(BinarySearchTree[string])
+// var _ IBinarySearchTree[string] = new(BinarySearchTree[string])
 
 func NewBinarySearchTree[T constraints.Ordered]() *BinarySearchTree[T] {
-	return &BinarySearchTree[T]{
-		binarytree.NewBinaryTree[T](),
-	}
+	return new(BinarySearchTree[T])
 }
 
 func (bst *BinarySearchTree[T]) InsertMany(data ...T) error {
@@ -48,6 +46,10 @@ func (bst *BinarySearchTree[T]) InsertMany(data ...T) error {
 }
 
 func (bst *BinarySearchTree[T]) Insert(data T) (*node.Node[T], error) {
+	if data == *new(T) {
+		return nil, fmt.Errorf("empty data")
+	}
+
 	if bst.Root == nil {
 		v := node.NewNode[T](data)
 		bst.Root = v
@@ -157,11 +159,159 @@ func (bst *BinarySearchTree[T]) delete(n *node.Node[T]) error {
 	return bst.delete(suc)
 }
 
-func findMin[T constraints.Ordered](node *node.Node[T]) *node.Node[T] {
-	for node.GetLeft() != nil {
-		node = node.GetLeft()
+func (bst *BinarySearchTree[T]) SubTreeFirst(n *node.Node[T]) (*node.Node[T], error) {
+	if bst.Size < 1 {
+		return nil, fmt.Errorf("empty tree")
 	}
-	return node
+	if n == nil {
+		return nil, fmt.Errorf("empty node")
+	}
+
+	if n.Left == nil {
+		return n, nil
+	}
+	return bst.SubTreeFirst(n.Left)
+}
+
+func (bst *BinarySearchTree[T]) SubTreeLast(n *node.Node[T]) (*node.Node[T], error) {
+	if bst.Size < 1 {
+		return nil, fmt.Errorf("empty tree")
+	}
+	if n == nil {
+		return nil, fmt.Errorf("empty node")
+	}
+
+	if n.Right == nil {
+		return n, nil
+	}
+	return bst.SubTreeLast(n.Right)
+}
+
+func (bst *BinarySearchTree[T]) Successor(n *node.Node[T]) (*node.Node[T], error) {
+	if bst.Size < 1 {
+		return nil, fmt.Errorf("empty tree")
+	}
+	if n == nil {
+		return nil, fmt.Errorf("empty node")
+	}
+
+	if n.Right == nil {
+		return bst.climbLeft(n)
+	}
+	return bst.SubTreeFirst(n.Right)
+}
+
+func (bst *BinarySearchTree[T]) climbLeft(n *node.Node[T]) (*node.Node[T], error) {
+	if n == nil {
+		return nil, fmt.Errorf("empty node")
+	}
+	if n.Parent == nil {
+		return nil, fmt.Errorf("node %v has no parent", n)
+	}
+
+	if n == n.Parent.Left {
+		return n.Parent, nil
+	}
+	return bst.climbLeft(n.Parent)
+}
+
+func (bst *BinarySearchTree[T]) Predecessor(n *node.Node[T]) (*node.Node[T], error) {
+	if bst.Size < 1 {
+		return nil, fmt.Errorf("empty tree")
+	}
+	if n == nil {
+		return nil, fmt.Errorf("empty node")
+	}
+
+	if n.Left == nil {
+		return bst.climbRight(n)
+	}
+	return bst.SubTreeLast(n.Left)
+}
+
+func (bst *BinarySearchTree[T]) climbRight(n *node.Node[T]) (*node.Node[T], error) {
+	if n == nil {
+		return nil, fmt.Errorf("empty node")
+	}
+	if n.Parent == nil {
+		return nil, fmt.Errorf("node %v has no parent", n)
+	}
+
+	if n == n.Parent.Right {
+		return n.Parent, nil
+	}
+	return bst.climbRight(n.Parent)
+}
+
+func (bst *BinarySearchTree[T]) TraversalOrder(n *node.Node[T]) ([]T, error) {
+	if bst.Size < 1 {
+		return nil, fmt.Errorf("empty tree")
+	}
+	if n == nil {
+		return []T{}, nil
+	}
+
+	leftOrder, err := bst.TraversalOrder(n.Left)
+	if err != nil {
+		return nil, err
+	}
+	rightOrder, err := bst.TraversalOrder(n.Right)
+	if err != nil {
+		return nil, err
+	}
+
+	output := append(leftOrder, n.Data)
+	output = append(output, rightOrder...)
+	return output, nil
+}
+
+func (bst *BinarySearchTree[T]) PreOrderTraversal(n *node.Node[T]) ([]T, error) {
+	if bst.Size < 1 {
+		return nil, fmt.Errorf("empty tree")
+	}
+	if n == nil {
+		return []T{}, nil
+	}
+
+	leftOrder, err := bst.PreOrderTraversal(n.Left)
+	if err != nil {
+		return nil, err
+	}
+	rightOrder, err := bst.PreOrderTraversal(n.Right)
+	if err != nil {
+		return nil, err
+	}
+
+	output := []T{n.Data}
+	output = append(output, leftOrder...)
+	output = append(output, rightOrder...)
+	return output, nil
+}
+
+func (bst *BinarySearchTree[T]) PostOrderTraversal(n *node.Node[T]) ([]T, error) {
+	if bst.Size < 1 {
+		return nil, fmt.Errorf("empty tree")
+	}
+	if n == nil {
+		return []T{}, nil
+	}
+
+	leftOrder, err := bst.PostOrderTraversal(n.Left)
+	if err != nil {
+		return nil, err
+	}
+	rightOrder, err := bst.PostOrderTraversal(n.Right)
+	if err != nil {
+		return nil, err
+	}
+
+	output := append(leftOrder, rightOrder...)
+	output = append(output, n.Data)
+	return output, nil
+}
+
+func (bst *BinarySearchTree[T]) GetSize() int32 {
+	return bst.Size
 }
 
 func (bst *BinarySearchTree[T]) GetHeight() int32 {
@@ -175,6 +325,13 @@ func height[T constraints.Ordered](node *node.Node[T]) int32 {
 
 	height := math.Max(float64(height(node.GetLeft())), float64(height(node.GetRight()))) + 1
 	return int32(height)
+}
+
+func findMin[T constraints.Ordered](node *node.Node[T]) *node.Node[T] {
+	for node.GetLeft() != nil {
+		node = node.GetLeft()
+	}
+	return node
 }
 
 func levelOrderTraversal[T constraints.Ordered](root *node.Node[T]) {

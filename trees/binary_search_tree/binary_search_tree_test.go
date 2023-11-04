@@ -221,6 +221,168 @@ func Test_Delete(t *testing.T) {
 	}
 }
 
+func Test_TraversalOrder(t *testing.T) {
+	// is := assert.New(t)
+
+	type args struct {
+		n *node.Node[string]
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		setup func(*BinarySearchTree[string])
+		want  func([]string, error)
+	}{
+		{
+			name: "Test Case 1",
+			args: args{
+				n: node.NewNode[string]("alita"),
+			},
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Insert("a")
+				bst.Insert("b")
+				bst.Insert("c")
+				bst.Insert("d")
+				bst.Insert("e")
+				bst.Insert("f")
+				// bst.Insert("g")
+				// bst.Insert("h")
+				// bst.Insert("i")
+				// bst.Insert("j")
+				// bst.Insert("k")
+				// bst.Insert("l")
+				// bst.Insert("m")
+			},
+			want: func(order []string, err error) {
+
+			},
+		},
+	}
+
+	bst := NewBinarySearchTree[string]()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(bst)
+			}
+
+			result, err := bst.TraversalOrder(bst.Root)
+			tt.want(result, err)
+
+			err = bst.Delete(bst.Root.Left.Data)
+			fmt.Println(err)
+
+			newResult, err := bst.TraversalOrder(bst.Root)
+			tt.want(newResult, err)
+		})
+	}
+}
+
+func Test_PreOrderTraversal(t *testing.T) {
+	// is := assert.New(t)
+
+	type args struct {
+		n *node.Node[string]
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		setup func(*BinarySearchTree[string])
+		want  func([]string, error)
+	}{
+		{
+			name: "Test Case 1",
+			args: args{
+				n: node.NewNode[string]("alita"),
+			},
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Insert("a")
+				bst.Insert("b")
+				bst.Insert("c")
+				bst.Insert("d")
+				bst.Insert("e")
+				// bst.Insert("f")
+				// bst.Insert("g")
+				// bst.Insert("h")
+				// bst.Insert("i")
+				// bst.Insert("j")
+				// bst.Insert("k")
+				// bst.Insert("l")
+				// bst.Insert("m")
+			},
+			want: func(order []string, err error) {
+
+			},
+		},
+	}
+
+	BinarySearchTree := NewBinarySearchTree[string]()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(BinarySearchTree)
+			}
+
+			result, err := BinarySearchTree.PreOrderTraversal(BinarySearchTree.Root)
+			tt.want(result, err)
+		})
+	}
+}
+
+func Test_PostOrderTraversal(t *testing.T) {
+	// is := assert.New(t)
+
+	type args struct {
+		n *node.Node[string]
+	}
+
+	tests := []struct {
+		name  string
+		args  args
+		setup func(*BinarySearchTree[string])
+		want  func([]string, error)
+	}{
+		{
+			name: "Test Case 1",
+			args: args{
+				n: node.NewNode[string]("alita"),
+			},
+			setup: func(bst *BinarySearchTree[string]) {
+				bst.Insert("a")
+				bst.Insert("b")
+				bst.Insert("c")
+				// bst.Insert("d")
+				// bst.Insert("e")
+				// bst.Insert("f")
+				// bst.Insert("g")
+				// bst.Insert("h")
+				// bst.Insert("i")
+				// bst.Insert("j")
+				// bst.Insert("k")
+				// bst.Insert("l")
+				// bst.Insert("m")
+			},
+			want: func(order []string, err error) {
+
+			},
+		},
+	}
+
+	BinarySearchTree := NewBinarySearchTree[string]()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setup != nil {
+				tt.setup(BinarySearchTree)
+			}
+
+			result, err := BinarySearchTree.PostOrderTraversal(BinarySearchTree.Root)
+			tt.want(result, err)
+		})
+	}
+}
+
 func Test_Height(t *testing.T) {
 	is := assert.New(t)
 	bst := NewBinarySearchTree[string]()
