@@ -60,7 +60,7 @@ func (n *Node[T]) IsLeaf() bool {
 }
 
 func (n *Node[T]) Skew() int32 {
-	var hr, hl int32
+	var hr, hl int32 = -1, -1
 	if n.Right != nil {
 		hr = n.Right.Height
 	}
