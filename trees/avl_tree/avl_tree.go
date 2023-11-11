@@ -4,104 +4,190 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/OladapoAjala/datastructures/sequences"
+	"github.com/OladapoAjala/datastructures/sets"
 	"github.com/OladapoAjala/datastructures/trees"
-	"github.com/OladapoAjala/datastructures/trees/node"
+	"github.com/OladapoAjala/datastructures/trees/data"
+	"golang.org/x/exp/constraints"
 )
 
-type AVLTree[T comparable] struct {
-	Root *node.Node[T]
+type AVLTree[K constraints.Ordered, V comparable] struct {
+	Root *data.Data[K, V]
 }
 
-type IAVLTree[T comparable] interface {
-	trees.ITrees[T]
-	sequences.Sequencer[T]
-	InsertAfter(*node.Node[T], *node.Node[T]) error
-	InsertBefore(*node.Node[T], *node.Node[T]) error
-	SubTree(*node.Node[T], int32) *node.Node[T]
+type IAVLTree[K constraints.Ordered, V comparable] interface {
+	trees.ITree[K, V]
+	sets.Seter[K, V]
+	InsertAfter(*data.Data[K, V], *data.Data[K, V]) error
+	InsertBefore(*data.Data[K, V], *data.Data[K, V]) error
+	SubTree(*data.Data[K, V], int32) *data.Data[K, V]
 }
 
-var _ IAVLTree[string] = new(AVLTree[string])
+var _ IAVLTree[string, string] = new(AVLTree[string, string])
 
-// SEQUENCE METHODS
-func (avl *AVLTree[T]) GetData(index int32) (T, error) {
-	n, err := avl.getNode(index)
+func NewAVLTree[K constraints.Ordered, V comparable](key K, val V) (*AVLTree[K, V], error) {
+	avl := new(AVLTree[K, V])
+	err := avl.Insert(key, val)
 	if err != nil {
-		return *new(T), err
+		return nil, err
 	}
-	return n.GetData(), nil
+	return avl, nil
 }
 
-func (avl *AVLTree[T]) Contains(data T) bool {
-	return avl.contains(avl.Root, data)
-}
-
-func (avl *AVLTree[T]) contains(n *node.Node[T], data T) bool {
-	if n == nil {
-		return false
-	}
-	if n.Data == data {
-		return true
+// SET METHODS
+func (avl *AVLTree[K, V]) Insert(key K, val V) error {
+	if key == *new(K) {
+		return fmt.Errorf("empty key")
 	}
 
-	left := avl.contains(n.Left, data)
-	if left {
-		return left
-	}
-	return avl.contains(n.Right, data)
-}
-
-func (avl *AVLTree[T]) Insert(index int32, data T) error {
-	if data == *new(T) {
-		return fmt.Errorf("empty data")
-	}
-	if index > avl.GetSize() {
-		return fmt.Errorf("index %d is larger than size %d", index, avl.GetSize())
-	}
-
-	newNode := node.NewNode[T](data)
+	d := data.NewData[K, V](key, val)
 	if avl.Root == nil {
-		avl.Root = newNode
+		avl.Root = d
 		return nil
 	}
-	if index == avl.GetSize() {
-		last := avl.SubTree(avl.Root, avl.GetSize()-1)
-		last.Right = newNode
-		newNode.Parent = last
-		avl.balance(last)
-		return nil
-	}
-
-	sub := avl.SubTree(avl.Root, index)
-	err := avl.InsertBefore(sub, newNode)
+	_, err := avl.insert(d, avl.Root)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (avl *AVLTree[T]) Delete(index int32) error {
-	if avl.Root == nil {
-		return fmt.Errorf("cannot delete from empty tree")
+func (avl *AVLTree[K, V]) insert(new, root *data.Data[K, V]) (*data.Data[K, V], error) {
+	err := avl.validateData(new, root)
+	if err != nil {
+		return nil, err
 	}
 
-	n, err := avl.getNode(index)
-	if err != nil {
-		return err
+	if new.GetKey() < root.GetKey() {
+		if root.Left == nil {
+			root.Left = new
+			root.Left.Parent = root
+			return root.Left, nil
+		}
+		return avl.insert(new, root.Left)
 	}
-	return avl.delete(n)
+
+	if root.Right == nil {
+		root.Right = new
+		root.Right.Parent = root
+		return root.Right, nil
+	}
+	return avl.insert(new, root.Right)
 }
 
-func (avl *AVLTree[T]) delete(n *node.Node[T]) error {
+func (avl *AVLTree[K, V]) validateData(new, root *data.Data[K, V]) error {
+	if root == nil {
+		return fmt.Errorf("empty node")
+	}
+	if new.IsEqual(root) {
+		return fmt.Errorf("data %v already in tree", new)
+	}
+	if new.IsEmpty() {
+		return fmt.Errorf("data %v is empty", new)
+	}
+	return nil
+}
+
+func (avl *AVLTree[K, V]) Find(key K) (V, error) {
+	if key == *new(K) {
+		return *new(V), fmt.Errorf("empty key")
+	}
+	if avl.GetSize() == 0 {
+		return *new(V), fmt.Errorf("empty tree")
+	}
+
+	found, err := avl.find(key, avl.Root)
+	if err != nil {
+		return *new(V), err
+	}
+	return found.GetValue(), nil
+}
+
+func (avl *AVLTree[K, V]) find(key K, n *data.Data[K, V]) (*data.Data[K, V], error) {
+	if n == nil {
+		return nil, fmt.Errorf("key %v is not in tree", key)
+	}
+	if key < n.GetKey() {
+		return avl.find(key, n.Left)
+	} else if key > n.GetKey() {
+		return avl.find(key, n.Right)
+	}
+	return n, nil
+}
+
+func (avl *AVLTree[K, V]) FindMax() (V, error) {
+	max, err := avl.SubTreeLast(avl.Root)
+	if err != nil {
+		return *new(V), err
+	}
+	return max.GetValue(), nil
+}
+
+func (avl *AVLTree[K, V]) FindMin() (V, error) {
+	min, err := avl.SubTreeFirst(avl.Root)
+	if err != nil {
+		return *new(V), err
+	}
+	return min.GetValue(), nil
+}
+
+func (avl *AVLTree[K, V]) FindNext(key K) (V, error) {
+	if key == *new(K) {
+		return *new(V), fmt.Errorf("empty key")
+	}
+	if avl.GetSize() == 0 {
+		return *new(V), fmt.Errorf("empty tree")
+	}
+
+	curr, err := avl.find(key, avl.Root)
+	if err != nil {
+		return *new(V), err
+	}
+	successor, err := avl.Successor(curr)
+	if err != nil {
+		return *new(V), err
+	}
+	return successor.GetValue(), nil
+}
+
+func (avl *AVLTree[K, V]) FindPrev(key K) (V, error) {
+	if key == *new(K) {
+		return *new(V), fmt.Errorf("empty key")
+	}
+	if avl.GetSize() == 0 {
+		return *new(V), fmt.Errorf("empty tree")
+	}
+
+	curr, err := avl.find(key, avl.Root)
+	if err != nil {
+		return *new(V), err
+	}
+	predecessor, err := avl.Predecessor(curr)
+	if err != nil {
+		return *new(V), err
+	}
+	return predecessor.GetValue(), nil
+}
+
+func (avl *AVLTree[K, V]) Delete(key K) (V, error) {
+	n, err := avl.find(key, avl.Root)
+	if err != nil {
+		return *new(V), err
+	}
+	err = avl.delete(n)
+	if err != nil {
+		return *new(V), err
+	}
+	return n.GetValue(), nil
+}
+
+func (avl *AVLTree[K, V]) delete(n *data.Data[K, V]) error {
 	if n.IsLeaf() {
-		if n == avl.Root {
-			avl.Root = nil
-		} else if n.Parent.Left == n {
+		if n.Parent.Left == n {
 			n.Parent.Left = nil
 		} else {
 			n.Parent.Right = nil
 		}
-		avl.balance(n.Parent)
+		avl.maintain(n.Parent)
 		return nil
 	}
 
@@ -110,9 +196,9 @@ func (avl *AVLTree[T]) delete(n *node.Node[T]) error {
 		if err != nil {
 			return err
 		}
-		tmp := pre.Data
-		pre.Data = n.Data
-		n.Data = tmp
+		tmp := pre.GetValue()
+		pre.Value = n.GetValue()
+		n.Value = tmp
 		return avl.delete(pre)
 	}
 
@@ -120,89 +206,65 @@ func (avl *AVLTree[T]) delete(n *node.Node[T]) error {
 	if err != nil {
 		return err
 	}
-	tmp := suc.Data
-	suc.Data = n.Data
-	n.Data = tmp
+	tmp := suc.GetValue()
+	suc.Value = n.GetValue()
+	n.Value = tmp
 	return avl.delete(suc)
 }
 
-func (avl *AVLTree[T]) Set(index int32, data T) error {
-	n, err := avl.getNode(index)
-	if err != nil {
-		return err
-	}
-	n.Data = data
-	return nil
-}
-
-func (avl *AVLTree[T]) InsertFirst(data T) error {
-	return avl.Insert(0, data)
-}
-
-func (avl *AVLTree[T]) InsertLast(data T) error {
-	return avl.Insert(avl.GetSize(), data)
-}
-
-func (avl *AVLTree[T]) DeleteFirst() error {
-	return avl.Delete(0)
-}
-
-func (avl *AVLTree[T]) DeleteLast() error {
-	return avl.Delete(avl.GetSize() - 1)
-}
-
 // TREE METHODS
-func NewAVLTree[T comparable](data ...T) *AVLTree[T] {
-	avl := new(AVLTree[T])
-	for i, item := range data {
-		err := avl.Insert(int32(i), item)
-		if err != nil {
-			return nil
-		}
-	}
-	return avl
-}
-
-func (avl *AVLTree[T]) update(n *node.Node[T]) {
+func (avl *AVLTree[K, V]) update(n *data.Data[K, V]) {
 	if n == nil {
 		return
 	}
+
+	var sl, sr int32
 	var hl, hr int32 = -1, -1
 	if n.Left != nil {
+		sl = n.Left.Size
 		hl = n.Left.Height
 	}
 	if n.Right != nil {
+		sr = n.Right.Size
 		hr = n.Right.Height
 	}
+	n.Size = sl + sr + 1
 	n.Height = 1 + int32(math.Max(float64(hl), float64(hr)))
 }
 
-func (avl *AVLTree[T]) balance(n *node.Node[T]) {
+func (avl *AVLTree[K, V]) balance(n *data.Data[K, V]) {
 	if n == nil {
 		return
 	}
 
 	skew := n.Skew()
 	if skew == 2 {
-		if n.Right.Skew() >= 0 {
-			avl.RotateLeft(n)
-		} else {
+		if n.Right.Skew() < 0 {
 			avl.RotateRight(n.Right)
-			avl.RotateLeft(n)
 		}
+		avl.RotateLeft(n)
 	} else if skew == -2 {
-		if n.Left.Skew() <= 0 {
-			avl.RotateRight(n)
-		} else {
+		if n.Left.Skew() > 0 {
 			avl.RotateLeft(n.Left)
-			avl.RotateRight(n)
 		}
+		avl.RotateRight(n)
 	}
-	avl.update(n)
-	avl.balance(n.Parent)
 }
 
-func (avl *AVLTree[T]) RotateRight(n *node.Node[T]) {
+func (avl *AVLTree[K, V]) maintain(n *data.Data[K, V]) {
+	if n == nil {
+		return
+	}
+	avl.balance(n)
+	avl.update(n)
+	avl.maintain(n.Parent)
+}
+
+func (avl *AVLTree[K, V]) RotateRight(n *data.Data[K, V]) error {
+	if n.Left == nil {
+		return fmt.Errorf("node %v has no left child", n.GetValue())
+	}
+
 	parent := n.Parent
 	left := n.Left
 	n.Left = left.Right
@@ -214,7 +276,7 @@ func (avl *AVLTree[T]) RotateRight(n *node.Node[T]) {
 	left.Parent = parent
 	if parent == nil {
 		avl.Root = left
-		return
+		return nil
 	}
 
 	if parent.Left == n {
@@ -222,11 +284,14 @@ func (avl *AVLTree[T]) RotateRight(n *node.Node[T]) {
 	} else {
 		parent.Right = left
 	}
-	avl.update(left)
-	avl.update(n)
+	return nil
 }
 
-func (avl *AVLTree[T]) RotateLeft(n *node.Node[T]) {
+func (avl *AVLTree[K, V]) RotateLeft(n *data.Data[K, V]) error {
+	if n.Right == nil {
+		return fmt.Errorf("node %v has no right child", n.GetValue())
+	}
+
 	parent := n.Parent
 	right := n.Right
 	n.Right = right.Left
@@ -236,9 +301,9 @@ func (avl *AVLTree[T]) RotateLeft(n *node.Node[T]) {
 	right.Left = n
 	n.Parent = right
 	right.Parent = parent
-	if parent != nil {
+	if parent == nil {
 		avl.Root = right
-		return
+		return nil
 	}
 
 	if parent.Right == n {
@@ -246,11 +311,10 @@ func (avl *AVLTree[T]) RotateLeft(n *node.Node[T]) {
 	} else {
 		parent.Left = right
 	}
-	avl.update(right)
-	avl.update(n)
+	return nil
 }
 
-func (avl *AVLTree[T]) InsertAfter(old, new *node.Node[T]) error {
+func (avl *AVLTree[K, V]) InsertAfter(old, new *data.Data[K, V]) error {
 	if avl.Root == nil {
 		return fmt.Errorf("empty tree")
 	}
@@ -261,7 +325,7 @@ func (avl *AVLTree[T]) InsertAfter(old, new *node.Node[T]) error {
 	if old.Right == nil {
 		old.Right = new
 		new.Parent = old
-		avl.balance(old)
+		avl.maintain(old)
 		return nil
 	}
 
@@ -271,11 +335,11 @@ func (avl *AVLTree[T]) InsertAfter(old, new *node.Node[T]) error {
 	}
 	successor.Left = new
 	new.Parent = successor
-	avl.balance(successor)
+	avl.maintain(successor)
 	return nil
 }
 
-func (avl *AVLTree[T]) InsertBefore(old, new *node.Node[T]) error {
+func (avl *AVLTree[K, V]) InsertBefore(old, new *data.Data[K, V]) error {
 	if avl.Root == nil {
 		return fmt.Errorf("empty tree")
 	}
@@ -286,7 +350,7 @@ func (avl *AVLTree[T]) InsertBefore(old, new *node.Node[T]) error {
 	if old.Left == nil {
 		old.Left = new
 		new.Parent = old
-		avl.balance(old)
+		avl.maintain(old)
 		return nil
 	}
 
@@ -296,11 +360,11 @@ func (avl *AVLTree[T]) InsertBefore(old, new *node.Node[T]) error {
 	}
 	predecessor.Right = new
 	new.Parent = predecessor
-	avl.balance(predecessor)
+	avl.maintain(predecessor)
 	return nil
 }
 
-func (avl *AVLTree[T]) SubTree(n *node.Node[T], index int32) *node.Node[T] {
+func (avl *AVLTree[K, V]) SubTree(n *data.Data[K, V], index int32) *data.Data[K, V] {
 	var nl int32 = 0
 	if n.Left != nil {
 		nl = n.Left.Size
@@ -314,7 +378,7 @@ func (avl *AVLTree[T]) SubTree(n *node.Node[T], index int32) *node.Node[T] {
 	return n
 }
 
-func (avl *AVLTree[T]) SubTreeFirst(n *node.Node[T]) (*node.Node[T], error) {
+func (avl *AVLTree[K, V]) SubTreeFirst(n *data.Data[K, V]) (*data.Data[K, V], error) {
 	if avl.GetSize() < 1 {
 		return nil, fmt.Errorf("empty tree")
 	}
@@ -328,7 +392,7 @@ func (avl *AVLTree[T]) SubTreeFirst(n *node.Node[T]) (*node.Node[T], error) {
 	return avl.SubTreeFirst(n.Left)
 }
 
-func (avl *AVLTree[T]) SubTreeLast(n *node.Node[T]) (*node.Node[T], error) {
+func (avl *AVLTree[K, V]) SubTreeLast(n *data.Data[K, V]) (*data.Data[K, V], error) {
 	if avl.GetSize() < 1 {
 		return nil, fmt.Errorf("empty tree")
 	}
@@ -342,7 +406,7 @@ func (avl *AVLTree[T]) SubTreeLast(n *node.Node[T]) (*node.Node[T], error) {
 	return avl.SubTreeLast(n.Right)
 }
 
-func (avl *AVLTree[T]) Successor(n *node.Node[T]) (*node.Node[T], error) {
+func (avl *AVLTree[K, V]) Successor(n *data.Data[K, V]) (*data.Data[K, V], error) {
 	if avl.GetSize() < 1 {
 		return nil, fmt.Errorf("empty tree")
 	}
@@ -356,7 +420,7 @@ func (avl *AVLTree[T]) Successor(n *node.Node[T]) (*node.Node[T], error) {
 	return avl.SubTreeFirst(n.Right)
 }
 
-func (avl *AVLTree[T]) climbLeft(n *node.Node[T]) (*node.Node[T], error) {
+func (avl *AVLTree[K, V]) climbLeft(n *data.Data[K, V]) (*data.Data[K, V], error) {
 	if n == nil {
 		return nil, fmt.Errorf("empty node")
 	}
@@ -370,7 +434,7 @@ func (avl *AVLTree[T]) climbLeft(n *node.Node[T]) (*node.Node[T], error) {
 	return avl.climbLeft(n.Parent)
 }
 
-func (avl *AVLTree[T]) Predecessor(n *node.Node[T]) (*node.Node[T], error) {
+func (avl *AVLTree[K, V]) Predecessor(n *data.Data[K, V]) (*data.Data[K, V], error) {
 	if avl.GetSize() < 1 {
 		return nil, fmt.Errorf("empty tree")
 	}
@@ -384,7 +448,7 @@ func (avl *AVLTree[T]) Predecessor(n *node.Node[T]) (*node.Node[T], error) {
 	return avl.SubTreeLast(n.Left)
 }
 
-func (avl *AVLTree[T]) climbRight(n *node.Node[T]) (*node.Node[T], error) {
+func (avl *AVLTree[K, V]) climbRight(n *data.Data[K, V]) (*data.Data[K, V], error) {
 	if n == nil {
 		return nil, fmt.Errorf("empty node")
 	}
@@ -398,12 +462,12 @@ func (avl *AVLTree[T]) climbRight(n *node.Node[T]) (*node.Node[T], error) {
 	return avl.climbRight(n.Parent)
 }
 
-func (avl *AVLTree[T]) TraversalOrder(n *node.Node[T]) ([]T, error) {
+func (avl *AVLTree[K, V]) TraversalOrder(n *data.Data[K, V]) ([]V, error) {
 	if avl.GetSize() < 1 {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
-		return []T{}, nil
+		return []V{}, nil
 	}
 
 	leftOrder, err := avl.TraversalOrder(n.Left)
@@ -415,17 +479,17 @@ func (avl *AVLTree[T]) TraversalOrder(n *node.Node[T]) ([]T, error) {
 		return nil, err
 	}
 
-	output := append(leftOrder, n.Data)
+	output := append(leftOrder, n.GetValue())
 	output = append(output, rightOrder...)
 	return output, nil
 }
 
-func (avl *AVLTree[T]) PreOrderTraversal(n *node.Node[T]) ([]T, error) {
+func (avl *AVLTree[K, V]) PreOrderTraversal(n *data.Data[K, V]) ([]V, error) {
 	if avl.GetSize() < 1 {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
-		return []T{}, nil
+		return []V{}, nil
 	}
 
 	leftOrder, err := avl.PreOrderTraversal(n.Left)
@@ -437,18 +501,18 @@ func (avl *AVLTree[T]) PreOrderTraversal(n *node.Node[T]) ([]T, error) {
 		return nil, err
 	}
 
-	output := []T{n.Data}
+	output := []V{n.GetValue()}
 	output = append(output, leftOrder...)
 	output = append(output, rightOrder...)
 	return output, nil
 }
 
-func (avl *AVLTree[T]) PostOrderTraversal(n *node.Node[T]) ([]T, error) {
+func (avl *AVLTree[K, V]) PostOrderTraversal(n *data.Data[K, V]) ([]V, error) {
 	if avl.GetSize() < 1 {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
-		return []T{}, nil
+		return []V{}, nil
 	}
 
 	leftOrder, err := avl.PostOrderTraversal(n.Left)
@@ -461,29 +525,25 @@ func (avl *AVLTree[T]) PostOrderTraversal(n *node.Node[T]) ([]T, error) {
 	}
 
 	output := append(leftOrder, rightOrder...)
-	output = append(output, n.Data)
+	output = append(output, n.GetValue())
 	return output, nil
 }
 
-func (avl *AVLTree[T]) GetSize() int32 {
+func (avl *AVLTree[K, V]) Size() int32 {
+	return avl.GetSize()
+}
+
+func (avl *AVLTree[K, V]) GetSize() int32 {
 	if avl.Root == nil {
 		return 0
 	}
 	return avl.Root.Size
 }
 
-func (avl *AVLTree[T]) IsEmpty() bool {
+func (avl *AVLTree[K, V]) IsEmpty() bool {
 	return avl.Root == nil
 }
 
-func (avl *AVLTree[T]) GetHeight() int32 {
+func (avl *AVLTree[K, V]) GetHeight() int32 {
 	return avl.Root.Height
-}
-
-// UTILITIES
-func (avl *AVLTree[T]) getNode(index int32) (*node.Node[T], error) {
-	if index >= avl.GetSize() {
-		return nil, fmt.Errorf("index %d is out of range", index)
-	}
-	return avl.SubTree(avl.Root, index), nil
 }

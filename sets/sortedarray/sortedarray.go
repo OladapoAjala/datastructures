@@ -16,6 +16,7 @@ type SortedArray[K constraints.Ordered, V any] struct {
 
 type ISortedArray[K constraints.Ordered, V any] interface {
 	sets.Seter[K, V]
+	InOrder() ([]*data.Data[K, V], error)
 }
 
 var _ ISortedArray[int, string] = new(SortedArray[int, string])
