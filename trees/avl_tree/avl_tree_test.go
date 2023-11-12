@@ -207,6 +207,89 @@ func Test_Delete(t *testing.T) {
 	}
 }
 
+func Test_Find(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		key int
+	}
+	tests := []struct {
+		name  string
+		args  args
+		setup func() *AVLTree[int, string]
+		want  func(string, error)
+	}{
+		{
+			name: "find random (key 5) element",
+			args: args{
+				key: 5,
+			},
+			setup: func() *AVLTree[int, string] {
+				avl := new(AVLTree[int, string])
+				avl.Insert(10, "10")
+				avl.Insert(5, "5")
+				avl.Insert(15, "15")
+				return avl
+			},
+			want: func(got string, err error) {
+				is.Nil(err)
+				is.Equal(got, "5")
+			},
+		},
+		{
+			name: "find in empty array",
+			args: args{
+				key: 0,
+			},
+			setup: func() *AVLTree[int, string] {
+				return new(AVLTree[int, string])
+			},
+			want: func(got string, err error) {
+				is.NotNil(err)
+				is.Error(err, fmt.Errorf("empty tree"))
+				is.Empty(got)
+			},
+		},
+		{
+			name: "key less than min",
+			args: args{
+				key: -1,
+			},
+			setup: func() *AVLTree[int, string] {
+				avl := new(AVLTree[int, string])
+				avl.Insert(10, "10")
+				return avl
+			},
+			want: func(got string, err error) {
+				is.NotNil(err)
+				is.Error(err, fmt.Errorf("key -1 is not in tree"))
+			},
+		},
+		{
+			name: "key greater than max",
+			args: args{
+				key: 12,
+			},
+			setup: func() *AVLTree[int, string] {
+				avl := new(AVLTree[int, string])
+				avl.Insert(10, "10")
+				return avl
+			},
+			want: func(got string, err error) {
+				is.NotNil(err)
+				is.Error(err, fmt.Errorf("key 2 is not in tree"))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			avl := tt.setup()
+			data, err := avl.Find(tt.args.key)
+			tt.want(data, err)
+		})
+	}
+}
+
 func Test_TraversalOrder(t *testing.T) {
 	is := assert.New(t)
 	avl := new(AVLTree[int, string])
