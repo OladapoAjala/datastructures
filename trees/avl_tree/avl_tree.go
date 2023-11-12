@@ -17,7 +17,6 @@ type AVLTree[K constraints.Ordered, V comparable] struct {
 type IAVLTree[K constraints.Ordered, V comparable] interface {
 	trees.ITree[K, V]
 	sets.Seter[K, V]
-	SubTree(*data.Data[K, V], int32) *data.Data[K, V]
 }
 
 var _ IAVLTree[string, string] = new(AVLTree[string, string])
@@ -312,20 +311,6 @@ func (avl *AVLTree[K, V]) RotateLeft(n *data.Data[K, V]) error {
 		parent.Left = right
 	}
 	return nil
-}
-
-func (avl *AVLTree[K, V]) SubTree(n *data.Data[K, V], index int32) *data.Data[K, V] {
-	var nl int32 = 0
-	if n.Left != nil {
-		nl = n.Left.Size
-	}
-
-	if index < nl {
-		return avl.SubTree(n.Left, index)
-	} else if index > nl {
-		return avl.SubTree(n.Right, index-nl-1)
-	}
-	return n
 }
 
 func (avl *AVLTree[K, V]) SubTreeFirst(n *data.Data[K, V]) (*data.Data[K, V], error) {
