@@ -80,7 +80,7 @@ func (n *Data[K, V]) Skew() int32 {
 }
 
 func (n *Data[K, V]) IsEqual(v *Data[K, V]) bool {
-	return n.Value == v.Value
+	return n.Key == v.Key
 }
 
 func (n *Data[K, V]) IsEmpty() bool {
