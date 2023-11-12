@@ -4,208 +4,194 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/OladapoAjala/datastructures/trees/node"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NewBinarySearchTree(t *testing.T) {
-	is := assert.New(t)
-	bst := NewBinarySearchTree[string]()
-
-	is.EqualValues(bst.GetSize(), 0)
-	is.Nil(bst.Root)
-}
-
 func Test_Insert(t *testing.T) {
 	is := assert.New(t)
-	bst := NewBinarySearchTree[int]()
-
-	tests := []struct {
-		name  string
-		input int
-		want  func(*node.Node[int], error)
-	}{
-		{
-			name:  "Insert into an empty tree",
-			input: 10,
-			want: func(n *node.Node[int], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root, n)
-				is.Nil(bst.Root.Left)
-				is.Nil(bst.Root.Right)
-				is.EqualValues(1, bst.GetSize())
-			},
-		},
-		{
-			name:  "Insert smaller value to the left",
-			input: 5,
-			want: func(n *node.Node[int], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root.Left, n)
-				is.Nil(bst.Root.Right)
-				is.EqualValues(2, bst.GetSize())
-			},
-		},
-		{
-			name:  "Insert larger value to the right",
-			input: 15,
-			want: func(n *node.Node[int], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root.Left.Data, 5)
-				is.Equal(bst.Root.Right, n)
-				is.EqualValues(3, bst.GetSize())
-			},
-		},
-		{
-			name:  "Insert duplicate value",
-			input: 10,
-			want: func(n *node.Node[int], err error) {
-				is.Nil(n)
-				is.Error(fmt.Errorf("data 10 already in tree"))
-				is.EqualValues(3, bst.GetSize())
-			},
-		},
-		{
-			name:  "Insert a value into left sub-tree",
-			input: 3,
-			want: func(n *node.Node[int], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root.Left, n.Parent)
-				is.True(n.IsLeaf())
-				is.EqualValues(4, bst.GetSize())
-			},
-		},
-		{
-			name:  "Insert a value into left sub-tree",
-			input: 12,
-			want: func(n *node.Node[int], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root.Right, n.Parent)
-				is.True(n.IsLeaf())
-				is.EqualValues(5, bst.GetSize())
-			},
-		},
-		{
-			name:  "Insert negative values",
-			input: -10,
-			want: func(n *node.Node[int], err error) {
-				is.Nil(err)
-				is.Equal(bst.Root.Left.Left, n.Parent)
-				is.True(n.IsLeaf())
-				is.EqualValues(6, bst.GetSize())
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			n, err := bst.Insert(tt.input)
-			tt.want(n, err)
-		})
-	}
-}
-
-func Test_InsertMany(t *testing.T) {
-	is := assert.New(t)
-	bst := NewBinarySearchTree[int]()
+	bst := new(BinarySearchTree[string, string])
 
 	tests := []struct {
 		name string
-		data []int
-		bst  *BinarySearchTree[int]
-		want func(*BinarySearchTree[int], error)
+		key  string
+		val  string
+		want func(error)
 	}{
 		{
-			name: "insert an array of data",
-			data: []int{3, 12, 8, 11, 1, 4, 2, 5},
-			bst:  bst,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name: "Insert into an empty tree",
+			key:  "key1",
+			val:  "value1",
+			want: func(err error) {
 				is.Nil(err)
-				is.EqualValues(bst.GetSize(), 8)
+				is.EqualValues(1, bst.GetSize())
+				is.Equal(bst.Root.GetKey(), "key1")
 
-				is.Equal(bst.Root.GetData(), 3)
-				is.Equal(bst.Root.Left.GetData(), 1)
-				is.Equal(bst.Root.Left.Right.GetData(), 2)
+				o, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(o, []string{"value1"})
+			},
+		},
+		{
+			name: "Insert at the end",
+			key:  "key2",
+			val:  "value2",
+			want: func(err error) {
+				is.Nil(err)
+				is.EqualValues(2, bst.GetSize())
+				is.Equal(bst.Root.Right.GetKey(), "key2")
 
-				is.Equal(bst.Root.Right.GetData(), 12)
-				is.Equal(bst.Root.Right.Left.GetData(), 8)
-				is.Equal(bst.Root.Right.Left.Left.GetData(), 4)
-				is.Equal(bst.Root.Right.Left.Right.GetData(), 11)
-				is.Equal(bst.Root.Right.Left.Left.Right.GetData(), 5)
+				o, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(o, []string{"value1", "value2"})
+			},
+		},
+		{
+			name: "Insert at the beginning",
+			key:  "key0",
+			val:  "value0",
+			want: func(err error) {
+				is.Nil(err)
+				is.EqualValues(3, bst.GetSize())
+				is.Equal(bst.Root.Left.GetKey(), "key0")
+
+				o, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(o, []string{"value0", "value1", "value2"})
+			},
+		},
+		{
+			name: "Insert at the end with same key",
+			key:  "key2",
+			val:  "new_value",
+			want: func(err error) {
+				is.Error(err, fmt.Errorf("key key2 already in tree"))
+				is.EqualValues(3, bst.GetSize())
+				is.Equal(bst.Root.Right.GetKey(), "key2")
+
+				o, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(o, []string{"value0", "value1", "value2"})
+			},
+		},
+		{
+			name: "Insert with empty key",
+			key:  "",
+			val:  "empty_value",
+			want: func(err error) {
+				is.Error(err, fmt.Errorf("empty key"))
+				is.EqualValues(3, bst.GetSize())
+
+				o, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(o, []string{"value0", "value1", "value2"})
+			},
+		},
+		{
+			name: "Insert with empty value",
+			key:  "key3",
+			val:  "",
+			want: func(err error) {
+				is.Error(err, fmt.Errorf("empty value"))
+				is.EqualValues(3, bst.GetSize())
+
+				o, err := bst.TraversalOrder(bst.Root)
+				is.Nil(err)
+				is.Equal(o, []string{"value0", "value1", "value2"})
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.bst.InsertMany(tt.data...)
-			tt.want(tt.bst, err)
+			err := bst.Insert(tt.key, tt.val)
+			tt.want(err)
 		})
 	}
 }
 
 func Test_Delete(t *testing.T) {
 	is := assert.New(t)
-	bst := NewBinarySearchTree[int]()
+	bst := new(BinarySearchTree[int, string])
+	bst.Insert(10, "10")
+	bst.Insert(5, "5")
+	bst.Insert(15, "15")
 
 	tests := []struct {
 		name  string
-		setup func(bst *BinarySearchTree[int])
-		arg   int
-		want  func(*BinarySearchTree[int], error)
+		setup func()
+		key   int
+		want  func(string, error)
 	}{
 		{
 			name: "Delete leaf node",
-			setup: func(bst *BinarySearchTree[int]) {
-				err := bst.InsertMany(10, 5, 15, 3, 8, 12, 20)
+			key:  5,
+			want: func(got string, err error) {
 				is.Nil(err)
-			},
-			arg: 3,
-			want: func(bst *BinarySearchTree[int], err error) {
+				is.EqualValues(bst.GetSize(), 2)
+				is.EqualValues(bst.GetHeight(), 1)
+				o, err := bst.TraversalOrder(bst.Root)
 				is.Nil(err)
-				order, err := bst.TraversalOrder(bst.Root)
-				is.Nil(err)
-				is.Equal(order, []int{5, 8, 10, 12, 15, 20})
+				is.Equal(o, []string{"10", "15"})
 			},
 		},
 		{
 			name: "Delete node with one child",
-			arg:  5,
-			want: func(bst *BinarySearchTree[int], err error) {
+			key:  10,
+			want: func(got string, err error) {
 				is.Nil(err)
-				order, err := bst.TraversalOrder(bst.Root)
+				is.EqualValues(bst.GetSize(), 1)
+				is.EqualValues(bst.GetHeight(), 0)
+				o, err := bst.TraversalOrder(bst.Root)
 				is.Nil(err)
-				is.Equal(order, []int{8, 10, 12, 15, 20})
+				is.Equal(o, []string{"15"})
 			},
 		},
 		{
-			name: "Delete node with two child",
-			arg:  15,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name: "Delete node with two children (predecessor case)",
+			setup: func() {
+				bst = new(BinarySearchTree[int, string])
+				bst.Insert(10, "10")
+				bst.Insert(5, "5")
+				bst.Insert(15, "15")
+			},
+			key: 10,
+			want: func(got string, err error) {
 				is.Nil(err)
-				order, err := bst.TraversalOrder(bst.Root)
+				is.EqualValues(bst.GetSize(), 2)
+				is.EqualValues(bst.GetHeight(), 1)
+				o, err := bst.TraversalOrder(bst.Root)
 				is.Nil(err)
-				is.Equal(order, []int{8, 10, 12, 20})
+				is.Equal(o, []string{"5", "15"})
 			},
 		},
 		{
-			name: "Delete root node",
-			arg:  10,
-			want: func(bst *BinarySearchTree[int], err error) {
+			name: "Delete node with one child (successor case)",
+			setup: func() {
+				bst = new(BinarySearchTree[int, string])
+				bst.Insert(10, "10")
+				bst.Insert(15, "15")
+			},
+			key: 10,
+			want: func(got string, err error) {
 				is.Nil(err)
-				order, err := bst.TraversalOrder(bst.Root)
+				is.EqualValues(bst.GetSize(), 1)
+				is.EqualValues(bst.GetHeight(), 0)
+				o, err := bst.TraversalOrder(bst.Root)
 				is.Nil(err)
-				is.Equal(order, []int{8, 12, 20})
+				is.Equal(o, []string{"15"})
 			},
 		},
 		{
-			name: "Delete non-existent value",
-			arg:  7,
-			want: func(bst *BinarySearchTree[int], err error) {
-				is.Error(err, fmt.Errorf("data 7 is not in tree"))
-				order, err := bst.TraversalOrder(bst.Root)
-				is.Nil(err)
-				is.Equal(order, []int{8, 12, 20})
+			name: "Delete non-existent node",
+			setup: func() {
+				bst = new(BinarySearchTree[int, string])
+				bst.Insert(10, "10")
+				bst.Insert(5, "5")
+				bst.Insert(15, "15")
+			},
+			key: 7,
+			want: func(got string, err error) {
+				is.Error(err, fmt.Errorf("key 7 is not in tree"))
 			},
 		},
 	}
@@ -213,217 +199,201 @@ func Test_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
-				tt.setup(bst)
+				tt.setup()
 			}
-			err := bst.Delete(tt.arg)
-			tt.want(bst, err)
+			value, err := bst.Delete(tt.key)
+			tt.want(value, err)
+		})
+	}
+}
+
+func Test_Find(t *testing.T) {
+	is := assert.New(t)
+
+	type args struct {
+		key int
+	}
+	tests := []struct {
+		name  string
+		args  args
+		setup func() *BinarySearchTree[int, string]
+		want  func(string, error)
+	}{
+		{
+			name: "find random (key 5) element",
+			args: args{
+				key: 5,
+			},
+			setup: func() *BinarySearchTree[int, string] {
+				bst := new(BinarySearchTree[int, string])
+				bst.Insert(10, "10")
+				bst.Insert(5, "5")
+				bst.Insert(15, "15")
+				return bst
+			},
+			want: func(got string, err error) {
+				is.Nil(err)
+				is.Equal(got, "5")
+			},
+		},
+		{
+			name: "find in empty array",
+			args: args{
+				key: 0,
+			},
+			setup: func() *BinarySearchTree[int, string] {
+				return new(BinarySearchTree[int, string])
+			},
+			want: func(got string, err error) {
+				is.NotNil(err)
+				is.Error(err, fmt.Errorf("empty tree"))
+				is.Empty(got)
+			},
+		},
+		{
+			name: "key less than min",
+			args: args{
+				key: -1,
+			},
+			setup: func() *BinarySearchTree[int, string] {
+				bst := new(BinarySearchTree[int, string])
+				bst.Insert(10, "10")
+				return bst
+			},
+			want: func(got string, err error) {
+				is.NotNil(err)
+				is.Error(err, fmt.Errorf("key -1 is not in tree"))
+			},
+		},
+		{
+			name: "key greater than max",
+			args: args{
+				key: 12,
+			},
+			setup: func() *BinarySearchTree[int, string] {
+				bst := new(BinarySearchTree[int, string])
+				bst.Insert(10, "10")
+				return bst
+			},
+			want: func(got string, err error) {
+				is.NotNil(err)
+				is.Error(err, fmt.Errorf("key 2 is not in tree"))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bst := tt.setup()
+			data, err := bst.Find(tt.args.key)
+			tt.want(data, err)
 		})
 	}
 }
 
 func Test_TraversalOrder(t *testing.T) {
-	// is := assert.New(t)
-
-	type args struct {
-		n *node.Node[string]
-	}
+	is := assert.New(t)
+	bst := new(BinarySearchTree[int, string])
 
 	tests := []struct {
 		name  string
-		args  args
-		setup func(*BinarySearchTree[string])
+		setup func()
 		want  func([]string, error)
 	}{
 		{
-			name: "Test Case 1",
-			args: args{
-				n: node.NewNode[string]("alita"),
-			},
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.Insert("a")
-				bst.Insert("b")
-				bst.Insert("c")
-				bst.Insert("d")
-				bst.Insert("e")
-				bst.Insert("f")
-				// bst.Insert("g")
-				// bst.Insert("h")
-				// bst.Insert("i")
-				// bst.Insert("j")
-				// bst.Insert("k")
-				// bst.Insert("l")
-				// bst.Insert("m")
+			name: "simple traversal order",
+			setup: func() {
+				bst.Insert(3, "c")
+				bst.Insert(1, "a")
+				bst.Insert(2, "b")
+				bst.Insert(4, "d")
+				bst.Insert(5, "e")
+				bst.Insert(6, "f")
 			},
 			want: func(order []string, err error) {
-
+				is.Nil(err)
+				is.Equal(order, []string{"a", "b", "c", "d", "e", "f"})
 			},
 		},
 	}
-
-	bst := NewBinarySearchTree[string]()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
-				tt.setup(bst)
+				tt.setup()
 			}
-
-			result, err := bst.TraversalOrder(bst.Root)
-			tt.want(result, err)
-
-			err = bst.Delete(bst.Root.Left.Data)
-			fmt.Println(err)
-
-			newResult, err := bst.TraversalOrder(bst.Root)
-			tt.want(newResult, err)
+			order, err := bst.TraversalOrder(bst.Root)
+			tt.want(order, err)
 		})
 	}
 }
 
 func Test_PreOrderTraversal(t *testing.T) {
-	// is := assert.New(t)
-
-	type args struct {
-		n *node.Node[string]
-	}
+	is := assert.New(t)
+	bst := new(BinarySearchTree[int, string])
 
 	tests := []struct {
 		name  string
-		args  args
-		setup func(*BinarySearchTree[string])
+		setup func()
 		want  func([]string, error)
 	}{
 		{
-			name: "Test Case 1",
-			args: args{
-				n: node.NewNode[string]("alita"),
-			},
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.Insert("a")
-				bst.Insert("b")
-				bst.Insert("c")
-				bst.Insert("d")
-				bst.Insert("e")
-				// bst.Insert("f")
-				// bst.Insert("g")
-				// bst.Insert("h")
-				// bst.Insert("i")
-				// bst.Insert("j")
-				// bst.Insert("k")
-				// bst.Insert("l")
-				// bst.Insert("m")
+			name: "simple pre-order order",
+			setup: func() {
+				bst.Insert(3, "c")
+				bst.Insert(1, "a")
+				bst.Insert(2, "b")
+				bst.Insert(4, "d")
+				bst.Insert(5, "e")
+				bst.Insert(6, "f")
 			},
 			want: func(order []string, err error) {
-
+				is.Nil(err)
+				is.Equal(order, []string{"c", "a", "b", "d", "e", "f"})
 			},
 		},
 	}
-
-	BinarySearchTree := NewBinarySearchTree[string]()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
-				tt.setup(BinarySearchTree)
+				tt.setup()
 			}
-
-			result, err := BinarySearchTree.PreOrderTraversal(BinarySearchTree.Root)
-			tt.want(result, err)
+			order, err := bst.PreOrderTraversal(bst.Root)
+			tt.want(order, err)
 		})
 	}
 }
 
 func Test_PostOrderTraversal(t *testing.T) {
-	// is := assert.New(t)
-
-	type args struct {
-		n *node.Node[string]
-	}
+	is := assert.New(t)
+	bst := new(BinarySearchTree[int, string])
 
 	tests := []struct {
 		name  string
-		args  args
-		setup func(*BinarySearchTree[string])
+		setup func()
 		want  func([]string, error)
 	}{
 		{
-			name: "Test Case 1",
-			args: args{
-				n: node.NewNode[string]("alita"),
-			},
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.Insert("a")
-				bst.Insert("b")
-				bst.Insert("c")
-				// bst.Insert("d")
-				// bst.Insert("e")
-				// bst.Insert("f")
-				// bst.Insert("g")
-				// bst.Insert("h")
-				// bst.Insert("i")
-				// bst.Insert("j")
-				// bst.Insert("k")
-				// bst.Insert("l")
-				// bst.Insert("m")
+			name: "simple post-order order",
+			setup: func() {
+				bst.Insert(3, "c")
+				bst.Insert(1, "a")
+				bst.Insert(2, "b")
+				bst.Insert(4, "d")
+				bst.Insert(5, "e")
+				bst.Insert(6, "f")
 			},
 			want: func(order []string, err error) {
-
+				is.Nil(err)
+				is.Equal(order, []string{"b", "a", "f", "e", "d", "c"})
 			},
 		},
 	}
-
-	BinarySearchTree := NewBinarySearchTree[string]()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
-				tt.setup(BinarySearchTree)
+				tt.setup()
 			}
-
-			result, err := BinarySearchTree.PostOrderTraversal(BinarySearchTree.Root)
-			tt.want(result, err)
-		})
-	}
-}
-
-func Test_Height(t *testing.T) {
-	is := assert.New(t)
-	bst := NewBinarySearchTree[string]()
-
-	tests := []struct {
-		name  string
-		bst   *BinarySearchTree[string]
-		setup func(*BinarySearchTree[string])
-		want  func(int32)
-	}{
-		{
-			name: "simple BST",
-			bst:  bst,
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.InsertMany("B")
-				bst.InsertMany("A")
-				bst.InsertMany("C")
-			},
-			want: func(height int32) {
-				is.EqualValues(height, 2)
-			},
-		},
-		{
-			name: "longer right sub-tree",
-			bst:  bst,
-			setup: func(bst *BinarySearchTree[string]) {
-				bst.InsertMany("D")
-			},
-			want: func(height int32) {
-				is.EqualValues(height, 3)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.setup != nil {
-				tt.setup(tt.bst)
-			}
-			height := tt.bst.GetHeight()
-			tt.want(height)
+			order, err := bst.PostOrderTraversal(bst.Root)
+			tt.want(order, err)
 		})
 	}
 }
