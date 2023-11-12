@@ -329,7 +329,7 @@ func (avl *AVLTree[K, V]) SubTree(n *data.Data[K, V], index int32) *data.Data[K,
 }
 
 func (avl *AVLTree[K, V]) SubTreeFirst(n *data.Data[K, V]) (*data.Data[K, V], error) {
-	if avl.GetSize() < 1 {
+	if avl.IsEmpty() {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
@@ -343,7 +343,7 @@ func (avl *AVLTree[K, V]) SubTreeFirst(n *data.Data[K, V]) (*data.Data[K, V], er
 }
 
 func (avl *AVLTree[K, V]) SubTreeLast(n *data.Data[K, V]) (*data.Data[K, V], error) {
-	if avl.GetSize() < 1 {
+	if avl.IsEmpty() {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
@@ -357,7 +357,7 @@ func (avl *AVLTree[K, V]) SubTreeLast(n *data.Data[K, V]) (*data.Data[K, V], err
 }
 
 func (avl *AVLTree[K, V]) Successor(n *data.Data[K, V]) (*data.Data[K, V], error) {
-	if avl.GetSize() < 1 {
+	if avl.IsEmpty() {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
@@ -385,7 +385,7 @@ func (avl *AVLTree[K, V]) climbLeft(n *data.Data[K, V]) (*data.Data[K, V], error
 }
 
 func (avl *AVLTree[K, V]) Predecessor(n *data.Data[K, V]) (*data.Data[K, V], error) {
-	if avl.GetSize() < 1 {
+	if avl.IsEmpty() {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
@@ -413,7 +413,7 @@ func (avl *AVLTree[K, V]) climbRight(n *data.Data[K, V]) (*data.Data[K, V], erro
 }
 
 func (avl *AVLTree[K, V]) TraversalOrder(n *data.Data[K, V]) ([]V, error) {
-	if avl.GetSize() < 1 {
+	if avl.IsEmpty() {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
@@ -435,7 +435,7 @@ func (avl *AVLTree[K, V]) TraversalOrder(n *data.Data[K, V]) ([]V, error) {
 }
 
 func (avl *AVLTree[K, V]) PreOrderTraversal(n *data.Data[K, V]) ([]V, error) {
-	if avl.GetSize() < 1 {
+	if avl.IsEmpty() {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
@@ -458,7 +458,7 @@ func (avl *AVLTree[K, V]) PreOrderTraversal(n *data.Data[K, V]) ([]V, error) {
 }
 
 func (avl *AVLTree[K, V]) PostOrderTraversal(n *data.Data[K, V]) ([]V, error) {
-	if avl.GetSize() < 1 {
+	if avl.IsEmpty() {
 		return nil, fmt.Errorf("empty tree")
 	}
 	if n == nil {
