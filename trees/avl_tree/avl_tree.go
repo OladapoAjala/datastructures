@@ -61,6 +61,7 @@ func (avl *AVLTree[K, V]) insert(new, root *data.Data[K, V]) (*data.Data[K, V], 
 		if root.Left == nil {
 			root.Left = new
 			root.Left.Parent = root
+			avl.maintain(new)
 			return root.Left, nil
 		}
 		return avl.insert(new, root.Left)
@@ -69,6 +70,7 @@ func (avl *AVLTree[K, V]) insert(new, root *data.Data[K, V]) (*data.Data[K, V], 
 	if root.Right == nil {
 		root.Right = new
 		root.Right.Parent = root
+		avl.maintain(new)
 		return root.Right, nil
 	}
 	return avl.insert(new, root.Right)
@@ -79,7 +81,7 @@ func (avl *AVLTree[K, V]) validateData(new, root *data.Data[K, V]) error {
 		return fmt.Errorf("empty node")
 	}
 	if new.IsEqual(root) {
-		return fmt.Errorf("data %v already in tree", new)
+		return fmt.Errorf("key %v already in tree", new)
 	}
 	if new.IsEmpty() {
 		return fmt.Errorf("data %v is empty", new)
