@@ -17,8 +17,6 @@ type AVLTree[K constraints.Ordered, V comparable] struct {
 type IAVLTree[K constraints.Ordered, V comparable] interface {
 	trees.ITree[K, V]
 	sets.Seter[K, V]
-	InsertAfter(*data.Data[K, V], *data.Data[K, V]) error
-	InsertBefore(*data.Data[K, V], *data.Data[K, V]) error
 	SubTree(*data.Data[K, V], int32) *data.Data[K, V]
 }
 
@@ -313,56 +311,6 @@ func (avl *AVLTree[K, V]) RotateLeft(n *data.Data[K, V]) error {
 	} else {
 		parent.Left = right
 	}
-	return nil
-}
-
-func (avl *AVLTree[K, V]) InsertAfter(old, new *data.Data[K, V]) error {
-	if avl.Root == nil {
-		return fmt.Errorf("empty tree")
-	}
-	if old == nil {
-		return fmt.Errorf("empty node")
-	}
-
-	if old.Right == nil {
-		old.Right = new
-		new.Parent = old
-		avl.maintain(old)
-		return nil
-	}
-
-	successor, err := avl.Successor(old)
-	if err != nil {
-		return err
-	}
-	successor.Left = new
-	new.Parent = successor
-	avl.maintain(successor)
-	return nil
-}
-
-func (avl *AVLTree[K, V]) InsertBefore(old, new *data.Data[K, V]) error {
-	if avl.Root == nil {
-		return fmt.Errorf("empty tree")
-	}
-	if old == nil {
-		return fmt.Errorf("empty node")
-	}
-
-	if old.Left == nil {
-		old.Left = new
-		new.Parent = old
-		avl.maintain(old)
-		return nil
-	}
-
-	predecessor, err := avl.Predecessor(old)
-	if err != nil {
-		return err
-	}
-	predecessor.Right = new
-	new.Parent = predecessor
-	avl.maintain(predecessor)
 	return nil
 }
 

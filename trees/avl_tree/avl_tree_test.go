@@ -4,120 +4,106 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/OladapoAjala/datastructures/trees/node"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Insert(t *testing.T) {
 	is := assert.New(t)
-	avl := NewAVLTree[int]()
+	avl := new(AVLTree[string, string])
 
 	tests := []struct {
-		name  string
-		index int32
-		data  int
-		want  func(error)
+		name string
+		key  string
+		val  string
+		want func(error)
 	}{
 		{
-			name:  "Insert into an empty tree",
-			index: 0,
-			data:  10,
+			name: "Insert into an empty tree",
+			key:  "key1",
+			val:  "value1",
 			want: func(err error) {
 				is.Nil(err)
 				is.EqualValues(1, avl.GetSize())
-				is.Equal(avl.Root.Data, 10)
+				is.Equal(avl.Root.GetKey(), "key1")
 
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{10})
+				is.Equal(o, []string{"value1"})
 			},
 		},
 		{
-			name:  "Insert at the end",
-			index: 1,
-			data:  20,
+			name: "Insert at the end",
+			key:  "key2",
+			val:  "value2",
 			want: func(err error) {
 				is.Nil(err)
 				is.EqualValues(2, avl.GetSize())
-				is.Equal(avl.Root.Right.Data, 20)
+				is.Equal(avl.Root.Right.GetKey(), "key2")
 
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{10, 20})
+				is.Equal(o, []string{"value1", "value2"})
 			},
 		},
 		{
-			name:  "Insert at a specific index",
-			index: 1,
-			data:  15,
+			name: "Insert at the beginning",
+			key:  "key0",
+			val:  "value0",
 			want: func(err error) {
 				is.Nil(err)
 				is.EqualValues(3, avl.GetSize())
-				is.Equal(avl.Root.Data, 10)
-				is.Equal(avl.Root.Right.Data, 20)
-				is.Equal(avl.Root.Right.Left.Data, 15)
+				is.Equal(avl.Root.Left.GetKey(), "key0")
 
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{10, 15, 20})
+				is.Equal(o, []string{"value0", "value1", "value2"})
 			},
 		},
 		{
-			name:  "Insert at the beginning",
-			index: 0,
-			data:  5,
+			name: "Insert at the end with same key",
+			key:  "key2",
+			val:  "new_value",
 			want: func(err error) {
-				is.Nil(err)
-				is.EqualValues(4, avl.GetSize())
-				is.Equal(avl.Root.Left.Data, 5)
-				is.Equal(avl.Root.Data, 10)
-				is.Equal(avl.Root.Right.Data, 20)
-				is.Equal(avl.Root.Right.Left.Data, 15)
+				is.Error(err, fmt.Errorf("key key2 already in tree"))
+				is.EqualValues(3, avl.GetSize())
+				is.Equal(avl.Root.Right.GetKey(), "key2")
 
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{5, 10, 15, 20})
+				is.Equal(o, []string{"value0", "value1", "value2"})
 			},
 		},
 		{
-			name:  "Insert at an invalid index",
-			index: 5,
-			data:  25,
+			name: "Insert with empty key",
+			key:  "",
+			val:  "empty_value",
 			want: func(err error) {
-				is.Error(err, fmt.Errorf("index 5 is out of range"))
-				is.EqualValues(4, avl.GetSize())
-				is.Equal(avl.Root.Left.Data, 5)
-				is.Equal(avl.Root.Data, 10)
-				is.Equal(avl.Root.Right.Data, 20)
-				is.Equal(avl.Root.Right.Left.Data, 15)
+				is.Error(err, fmt.Errorf("empty key"))
+				is.EqualValues(3, avl.GetSize())
 
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{5, 10, 15, 20})
+				is.Equal(o, []string{"value0", "value1", "value2"})
 			},
 		},
 		{
-			name:  "Insert with empty data",
-			index: 2,
-			data:  0,
+			name: "Insert with empty value",
+			key:  "key3",
+			val:  "",
 			want: func(err error) {
-				is.Error(err, fmt.Errorf("empty data"))
-				is.EqualValues(4, avl.GetSize())
-				is.Equal(avl.Root.Left.Data, 5)
-				is.Equal(avl.Root.Data, 10)
-				is.Equal(avl.Root.Right.Data, 20)
-				is.Equal(avl.Root.Right.Left.Data, 15)
+				is.Error(err, fmt.Errorf("empty value"))
+				is.EqualValues(3, avl.GetSize())
 
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{5, 10, 15, 20})
+				is.Equal(o, []string{"value0", "value1", "value2"})
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := avl.Insert(tt.index, tt.data)
+			err := avl.Insert(tt.key, tt.val)
 			tt.want(err)
 		})
 	}
@@ -125,83 +111,87 @@ func Test_Insert(t *testing.T) {
 
 func Test_Delete(t *testing.T) {
 	is := assert.New(t)
-	avl := NewAVLTree[int](10, 5, 15)
+	avl := new(AVLTree[int, string])
+	avl.Insert(10, "10")
+	avl.Insert(5, "5")
+	avl.Insert(15, "15")
 
 	tests := []struct {
 		name  string
 		setup func()
-		index int32
-		want  func(error)
+		key   int
+		want  func(string, error)
 	}{
 		{
-			name:  "Delete leaf node",
-			index: 2,
-			want: func(err error) {
+			name: "Delete leaf node",
+			key:  5,
+			want: func(got string, err error) {
 				is.Nil(err)
-
+				is.EqualValues(avl.GetSize(), 2)
+				is.EqualValues(avl.GetHeight(), 1)
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{10, 5})
+				is.Equal(o, []string{"10", "15"})
 			},
 		},
 		{
-			name:  "Delete node with one child",
-			index: 0,
-			want: func(err error) {
+			name: "Delete node with one child",
+			key:  10,
+			want: func(got string, err error) {
 				is.Nil(err)
-
+				is.EqualValues(avl.GetSize(), 1)
+				is.EqualValues(avl.GetHeight(), 0)
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{5})
+				is.Equal(o, []string{"15"})
 			},
 		},
 		{
 			name: "Delete node with two children (predecessor case)",
 			setup: func() {
-				avl = NewAVLTree[int](10, 5, 15, 3, 8, 12, 20)
+				avl = new(AVLTree[int, string])
+				avl.Insert(10, "10")
+				avl.Insert(5, "5")
+				avl.Insert(15, "15")
 			},
-			index: 2,
-			want: func(err error) {
+			key: 10,
+			want: func(got string, err error) {
 				is.Nil(err)
-
+				is.EqualValues(avl.GetSize(), 2)
+				is.EqualValues(avl.GetHeight(), 1)
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{10, 5, 3, 8, 12, 20})
+				is.Equal(o, []string{"5", "15"})
 			},
 		},
 		{
-			name: "Delete node with two children (successor case)",
+			name: "Delete node with one child (successor case)",
 			setup: func() {
-				avl = NewAVLTree[int](10, 5, 15, 3, 8, 12, 20)
+				avl = new(AVLTree[int, string])
+				avl.Insert(10, "10")
+				avl.Insert(15, "15")
 			},
-			index: 1,
-			want: func(err error) {
+			key: 10,
+			want: func(got string, err error) {
 				is.Nil(err)
-
+				is.EqualValues(avl.GetSize(), 1)
+				is.EqualValues(avl.GetHeight(), 0)
 				o, err := avl.TraversalOrder(avl.Root)
 				is.Nil(err)
-				is.Equal(o, []int{10, 15, 3, 8, 12, 20})
+				is.Equal(o, []string{"15"})
 			},
 		},
 		{
-			name: "Delete root node with two children",
+			name: "Delete non-existent node",
 			setup: func() {
-				avl = NewAVLTree[int](10, 5, 15, 3, 8, 12, 20)
+				avl = new(AVLTree[int, string])
+				avl.Insert(10, "10")
+				avl.Insert(5, "5")
+				avl.Insert(15, "15")
 			},
-			index: 0,
-			want: func(err error) {
-				is.Nil(err)
-
-				o, err := avl.TraversalOrder(avl.Root)
-				is.Nil(err)
-				is.Equal(o, []int{5, 15, 3, 8, 12, 20})
-			},
-		},
-		{
-			name:  "Delete non-existent node",
-			index: 7,
-			want: func(err error) {
-				is.Error(err, fmt.Errorf("index 7 is out of range"))
+			key: 7,
+			want: func(got string, err error) {
+				is.Error(err, fmt.Errorf("key 7 is not in tree"))
 			},
 		},
 	}
@@ -211,300 +201,34 @@ func Test_Delete(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup()
 			}
-			err := avl.Delete(tt.index)
-			tt.want(err)
-		})
-	}
-}
-
-func Test_InsertAfter(t *testing.T) {
-	is := assert.New(t)
-	avl := NewAVLTree[int](10)
-
-	type args struct {
-		currIndex int32
-		data      *node.Node[int]
-	}
-	tests := []struct {
-		name  string
-		args  args
-		setup func()
-		want  func(error)
-	}{
-		{
-			name: "insert after root node",
-			args: args{
-				data:      node.NewNode[int](15),
-				currIndex: 0,
-			},
-			want: func(err error) {
-				is.Nil(err)
-				o, err := avl.TraversalOrder(avl.Root)
-				is.Nil(err)
-				is.Equal(o, []int{10, 15})
-			},
-		},
-		{
-			name: "insert after node with right child",
-			args: args{
-				data:      node.NewNode[int](20),
-				currIndex: 0,
-			},
-			want: func(err error) {
-				is.Nil(err)
-				o, err := avl.TraversalOrder(avl.Root)
-				is.Nil(err)
-				is.Equal(o, []int{10, 20, 15})
-			},
-		},
-		{
-			name: "insert after node with an ancestor successor",
-			args: args{
-				data:      node.NewNode[int](13),
-				currIndex: 1,
-			},
-			setup: func() {
-				n, err := avl.getNode(1)
-				is.Nil(err)
-				err = avl.InsertBefore(n, node.NewNode[int](17))
-				is.Nil(err)
-			},
-			want: func(err error) {
-				is.Nil(err)
-				o, err := avl.TraversalOrder(avl.Root)
-				is.Nil(err)
-				is.Equal(o, []int{10, 17, 13, 20, 15})
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.setup != nil {
-				tt.setup()
-			}
-
-			n, err := avl.getNode(tt.args.currIndex)
-			is.Nil(err)
-			err = avl.InsertAfter(n, tt.args.data)
-			tt.want(err)
-		})
-	}
-}
-
-func Test_InsertBefore(t *testing.T) {
-	is := assert.New(t)
-	avl := NewAVLTree[int](10)
-
-	type args struct {
-		currIndex int32
-		data      *node.Node[int]
-	}
-	tests := []struct {
-		name  string
-		args  args
-		setup func()
-		want  func(error)
-	}{
-		{
-			name: "insert before root node",
-			args: args{
-				data:      node.NewNode[int](5),
-				currIndex: 0,
-			},
-			want: func(err error) {
-				is.Nil(err)
-				o, err := avl.TraversalOrder(avl.Root)
-				is.Nil(err)
-				is.Equal(o, []int{5, 10})
-			},
-		},
-		{
-			name: "insert before node with left child",
-			args: args{
-				data:      node.NewNode[int](7),
-				currIndex: 1,
-			},
-			want: func(err error) {
-				is.Nil(err)
-				o, err := avl.TraversalOrder(avl.Root)
-				is.Nil(err)
-				is.Equal(o, []int{5, 7, 10})
-			},
-		},
-		{
-			name: "insert before node with ancestor predecessor",
-			args: args{
-				data:      node.NewNode[int](12),
-				currIndex: 1,
-			},
-			setup: func() {
-				n, err := avl.getNode(0)
-				is.Nil(err)
-				err = avl.InsertAfter(n, node.NewNode[int](8))
-				is.Nil(err)
-			},
-			want: func(err error) {
-				is.Nil(err)
-				o, err := avl.TraversalOrder(avl.Root)
-				is.Nil(err)
-				is.Equal(o, []int{5, 12, 8, 7, 10})
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.setup != nil {
-				tt.setup()
-			}
-
-			n, err := avl.getNode(tt.args.currIndex)
-			is.Nil(err)
-			err = avl.InsertBefore(n, tt.args.data)
-			tt.want(err)
-		})
-	}
-}
-
-func Test_Contains(t *testing.T) {
-	is := assert.New(t)
-	avl := NewAVLTree[string]()
-	avl.Insert(0, "a")
-	avl.Insert(1, "b")
-	avl.Insert(2, "c")
-	avl.Insert(3, "d")
-	avl.Insert(4, "e")
-	avl.Insert(5, "f")
-	avl.Insert(6, "g")
-
-	// avl.Insert(0, "a")
-	// avl.Insert(1, "b")
-	// avl.Insert(0, "c")
-	// avl.Insert(1, "d")
-	// avl.Insert(0, "e")
-	// avl.Insert(4, "f")
-	// avl.Insert(3, "g")
-	is.True(avl.Contains("e"))
-	is.False(avl.Contains("j"))
-}
-
-func Test_InsertFirst(t *testing.T) {
-	is := assert.New(t)
-	avl := NewAVLTree[string]()
-	avl.Insert(0, "a")
-	avl.Insert(1, "b")
-	avl.Insert(0, "c")
-	avl.Insert(1, "d")
-	avl.Insert(0, "e")
-	avl.Insert(4, "f")
-	avl.Insert(3, "g")
-
-	avl.InsertFirst("z")
-	o, err := avl.TraversalOrder(avl.Root)
-	is.Nil(err)
-	is.Equal(o, []string{"z", "e", "c", "d", "g", "a", "f", "b"})
-}
-
-func Test_InsertLast(t *testing.T) {
-	is := assert.New(t)
-	avl := NewAVLTree[string]()
-	avl.Insert(0, "a")
-	avl.Insert(1, "b")
-	avl.Insert(0, "c")
-	avl.Insert(1, "d")
-	avl.Insert(0, "e")
-	avl.Insert(4, "f")
-	avl.Insert(3, "g")
-
-	avl.InsertLast("z")
-	o, err := avl.TraversalOrder(avl.Root)
-	is.Nil(err)
-	is.Equal(o, []string{"e", "c", "d", "g", "a", "f", "b", "z"})
-}
-
-func Test_DeleteFirst(t *testing.T) {
-	is := assert.New(t)
-
-	tests := []struct {
-		name string
-		avl  *AVLTree[string]
-		want func(*AVLTree[string], error)
-	}{
-		{
-			name: "simple delete first",
-			avl:  NewAVLTree("Node 0", "Node 1"),
-			want: func(avl *AVLTree[string], err error) {
-				is.Nil(err)
-				is.False(avl.Contains("Node 0"))
-
-				data, err := avl.GetData(0)
-				is.Nil(err)
-				is.Equal(data, "Node 1")
-			},
-		},
-		{
-			name: "delete first (only node)",
-			avl:  NewAVLTree("A"),
-			want: func(avl *AVLTree[string], err error) {
-				is.Nil(err)
-				is.False(avl.Contains("A"))
-
-				data, err := avl.GetData(0)
-				is.Empty(data)
-				is.Error(err, fmt.Errorf("index 0 is out of range"))
-			},
-		},
-		{
-			name: "delete first (empty node)",
-			avl:  NewAVLTree[string](),
-			want: func(avl *AVLTree[string], err error) {
-				is.Error(err, fmt.Errorf("cannot delete from empty tree"))
-
-				data, err := avl.GetData(0)
-				is.Empty(data)
-				is.Error(err, fmt.Errorf("index 0 is out of range"))
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.avl.DeleteFirst()
-			tt.want(tt.avl, err)
+			value, err := avl.Delete(tt.key)
+			tt.want(value, err)
 		})
 	}
 }
 
 func Test_TraversalOrder(t *testing.T) {
 	is := assert.New(t)
-	avl := NewAVLTree[string]()
-
-	type args struct {
-		n *node.Node[string]
-	}
+	avl := new(AVLTree[int, string])
 
 	tests := []struct {
 		name  string
-		args  args
 		setup func()
 		want  func([]string, error)
 	}{
 		{
-			name: "Test Case 1",
-			args: args{
-				n: node.NewNode[string]("alita"),
-			},
+			name: "simple traversal order",
 			setup: func() {
-				avl.Insert(0, "a")
-				avl.Insert(1, "b")
-				avl.Insert(0, "c")
-				avl.Insert(1, "d")
-				avl.Insert(0, "e")
-				avl.Insert(4, "f")
-				avl.Insert(3, "g")
+				avl.Insert(1, "a")
+				avl.Insert(2, "b")
+				avl.Insert(3, "c")
+				avl.Insert(4, "d")
+				avl.Insert(5, "e")
+				avl.Insert(6, "f")
 			},
 			want: func(order []string, err error) {
 				is.Nil(err)
-				is.Equal(order, []string{"e", "c", "d", "g", "a", "f", "b"})
+				is.Equal(order, []string{"a", "b", "c", "d", "e", "f"})
 			},
 		},
 	}
@@ -521,35 +245,26 @@ func Test_TraversalOrder(t *testing.T) {
 
 func Test_PreOrderTraversal(t *testing.T) {
 	is := assert.New(t)
-	avl := NewAVLTree[string]()
-
-	type args struct {
-		n *node.Node[string]
-	}
+	avl := new(AVLTree[int, string])
 
 	tests := []struct {
 		name  string
-		args  args
 		setup func()
 		want  func([]string, error)
 	}{
 		{
-			name: "Test Case 1",
-			args: args{
-				n: node.NewNode[string]("alita"),
-			},
+			name: "simple traversal order",
 			setup: func() {
-				avl.Insert(0, "a")
-				avl.Insert(1, "b")
-				avl.Insert(0, "c")
-				avl.Insert(1, "d")
-				avl.Insert(0, "e")
-				avl.Insert(4, "f")
-				avl.Insert(3, "g")
+				avl.Insert(1, "a")
+				avl.Insert(2, "b")
+				avl.Insert(3, "c")
+				avl.Insert(4, "d")
+				avl.Insert(5, "e")
+				avl.Insert(6, "f")
 			},
 			want: func(order []string, err error) {
 				is.Nil(err)
-				is.Equal(order, []string{"a", "c", "e", "d", "g", "b", "f"})
+				is.Equal(order, []string{"d", "b", "a", "c", "e", "f"})
 			},
 		},
 	}
@@ -566,35 +281,26 @@ func Test_PreOrderTraversal(t *testing.T) {
 
 func Test_PostOrderTraversal(t *testing.T) {
 	is := assert.New(t)
-	avl := NewAVLTree[string]()
-
-	type args struct {
-		n *node.Node[string]
-	}
+	avl := new(AVLTree[int, string])
 
 	tests := []struct {
 		name  string
-		args  args
 		setup func()
 		want  func([]string, error)
 	}{
 		{
-			name: "Test Case 1",
-			args: args{
-				n: node.NewNode[string]("alita"),
-			},
+			name: "simple traversal order",
 			setup: func() {
-				avl.Insert(0, "a")
-				avl.Insert(1, "b")
-				avl.Insert(0, "c")
-				avl.Insert(1, "d")
-				avl.Insert(0, "e")
-				avl.Insert(4, "f")
-				avl.Insert(3, "g")
+				avl.Insert(1, "a")
+				avl.Insert(2, "b")
+				avl.Insert(3, "c")
+				avl.Insert(4, "d")
+				avl.Insert(5, "e")
+				avl.Insert(6, "f")
 			},
 			want: func(order []string, err error) {
 				is.Nil(err)
-				is.Equal(order, []string{"e", "g", "d", "c", "f", "b", "a"})
+				is.Equal(order, []string{"a", "c", "b", "f", "e", "d"})
 			},
 		},
 	}
