@@ -64,7 +64,7 @@ func (mh *MaxHeap[K, V]) DeleteMax() (*data.Data[K, V], error) {
 	if err != nil {
 		return nil, err
 	}
-	return mh.Heap.GetData(0)
+	return last, nil
 }
 
 func (mh *MaxHeap[K, V]) heapifyUp(d *data.Data[K, V]) error {

@@ -21,8 +21,11 @@ func Test_Dequeue(t *testing.T) {
 			pQueue: pq,
 			want: func(data string, err error) {
 				is.Nil(err)
-				is.Equal(data, "A")
-				is.Equal(pq.Tree, []string{"B", "D"})
+				is.Equal(data, "D")
+				max, err := pq.FindMax()
+				is.Nil(err)
+				is.Equal(max.GetKey(), "B")
+				is.EqualValues(pq.Heap.GetSize(), 2)
 			},
 		},
 	}

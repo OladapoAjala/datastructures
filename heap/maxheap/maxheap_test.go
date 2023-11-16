@@ -143,7 +143,7 @@ func Test_DeleteMax(t *testing.T) {
 			keys: []int{3, 1, 5, 2, 4, 7},
 			want: func(max *data.Data[int, string], err error) {
 				is.Nil(err)
-				is.Equal(max.Value, "value5")
+				is.Equal(max.Value, "value7")
 			},
 		},
 	}

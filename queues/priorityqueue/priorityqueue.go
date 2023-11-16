@@ -1,7 +1,7 @@
 package priorityqueue
 
 import (
-	"github.com/OladapoAjala/datastructures/heap"
+	"github.com/OladapoAjala/datastructures/heap/maxheap"
 	"golang.org/x/exp/constraints"
 )
 
@@ -12,7 +12,7 @@ type IQueuer[K any] interface {
 }
 
 type PQueue[T constraints.Ordered] struct {
-	*heap.Heap[T]
+	*maxheap.MaxHeap[T, T]
 }
 
 type IPQueue[T comparable] interface {
@@ -22,14 +22,24 @@ type IPQueue[T comparable] interface {
 
 func NewPQueue[T constraints.Ordered]() *PQueue[T] {
 	return &PQueue[T]{
-		heap.NewHeap[T](),
+		maxheap.NewMaxHeap[T, T](),
 	}
 }
 
 func (pq *PQueue[T]) Dequeue() (T, error) {
-	return pq.Poll()
+	max, err := pq.DeleteMax()
+	if err != nil {
+		return *new(T), err
+	}
+	return max.GetKey(), nil
 }
 
 func (pq *PQueue[T]) Enqueue(data ...T) error {
-	return pq.Add(data...)
+	for _, d := range data {
+		err := pq.Insert(d, d)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
