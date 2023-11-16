@@ -111,7 +111,7 @@ func (da *DynamicArray[T]) InsertLast(data T) error {
 	if da.length == 0 {
 		return da.Insert(0, data)
 	}
-	return da.Insert(da.length-1, data)
+	return da.Insert(da.length, data)
 }
 
 func (da *DynamicArray[T]) Delete(index int32) error {

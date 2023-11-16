@@ -74,6 +74,7 @@ func merge[K constraints.Ordered, V any](arrOne, arrTwo []*data.Data[K, V]) []*d
 	return sorted
 }
 
+// Optimize to O(n)
 func (sa *SortedArray[K, V]) Insert(key K, value V) error {
 	if key == *new(K) {
 		return fmt.Errorf("empty key")

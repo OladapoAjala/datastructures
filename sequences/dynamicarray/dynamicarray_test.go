@@ -334,7 +334,7 @@ func Test_InsertLast(t *testing.T) {
 			},
 			want: func(da *DynamicArray[string], err error) {
 				is.Nil(err)
-				is.False(da.Contains("c"))
+				is.True(da.Contains("c"))
 				data, err := da.GetData(da.GetSize() - 1)
 				is.Nil(err)
 				is.Equal(data, "d")

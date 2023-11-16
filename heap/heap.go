@@ -7,6 +7,9 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+type Heaper[K constraints.Ordered, V comparable] interface {
+	Insert(K, V) error
+}
 type Heap[T constraints.Ordered] struct {
 	Tree []T
 	Size int32
@@ -208,13 +211,14 @@ func (h *Heap[T]) sink(k int32) error {
 
 /*
 -> I'm guessing the indices are sorted already
-func (h *Heap[T]) sortMap(data T) {
-	value := h.Map[data]
-	sort.Slice(value, func(i, j int) bool {
-		return value[i] < value[j]
-	})
-	h.Map[data] = value
-}
+
+	func (h *Heap[T]) sortMap(data T) {
+		value := h.Map[data]
+		sort.Slice(value, func(i, j int) bool {
+			return value[i] < value[j]
+		})
+		h.Map[data] = value
+	}
 */
 func (h *Heap[T]) swap(i, j int32) error {
 	err := h.mapSwap(i, j)
