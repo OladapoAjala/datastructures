@@ -68,15 +68,12 @@ func (mh *MaxHeap[K, V]) DeleteMax() (*data.Data[K, V], error) {
 }
 
 func (mh *MaxHeap[K, V]) heapifyUp(d *data.Data[K, V]) error {
-	if d == nil {
+	if d == nil || d.Index == 0 {
 		return nil
 	}
 	parent, err := mh.GetParent(d)
 	if err != nil {
 		return err
-	}
-	if parent == d {
-		return nil
 	}
 	if d.GetKey() > parent.GetKey() {
 		mh.swap(d, parent)
