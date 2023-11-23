@@ -243,3 +243,10 @@ func (l *LinkedList[T]) ToArray() ([]T, error) {
 	}
 	return array, nil
 }
+
+func (l *LinkedList[T]) ForEach(o func(*node.Node[T])) error {
+	for it := l.Head; it != nil; it = it.Next {
+		o(it)
+	}
+	return nil
+}
