@@ -25,7 +25,7 @@ func (g *Graph[V]) BreadthFirstSearch(start *vertex.Vertex[V]) {
 	vertices := queue.NewQueue[*vertex.Vertex[V]]()
 	vertices.Enqueue(start)
 
-	for v, err := vertices.Dequeue(); err == nil; {
+	for v, err := vertices.Dequeue(); err == nil; v, err = vertices.Dequeue() {
 		v.Neighbours.ForEach(func(n *node.Node[*vertex.Vertex[V]]) error {
 			if _, visited := visitedNodes[n.Data]; !visited {
 				parents[n.Data] = v
