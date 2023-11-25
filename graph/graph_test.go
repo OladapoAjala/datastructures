@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,6 +47,24 @@ func Test_Add(t *testing.T) {
 				data, err = parentVertex.Neighbours.GetData(0)
 				is.Nil(err)
 				is.Equal(data.GetVertexData(), 2)
+			},
+		},
+		{
+			name:   "Add with existing data",
+			data:   1,
+			parent: 2,
+			want: func(err error) {
+				is.Error(err, fmt.Errorf("data 1 already present in graph"))
+				is.EqualValues(graph.Vertices.GetSize(), 2)
+			},
+		},
+		{
+			name:   "Add with non-existent parent",
+			data:   3,
+			parent: 999,
+			want: func(err error) {
+				is.Error(err, fmt.Errorf("data 999 not found in graph"))
+				is.EqualValues(graph.Vertices.GetSize(), 2)
 			},
 		},
 	}
