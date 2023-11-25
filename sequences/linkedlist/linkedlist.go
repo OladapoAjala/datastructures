@@ -244,9 +244,25 @@ func (l *LinkedList[T]) ToArray() ([]T, error) {
 	return array, nil
 }
 
-func (l *LinkedList[T]) ForEach(o func(*node.Node[T])) error {
+func (l *LinkedList[T]) ForEach(o func(*node.Node[T]) error) error {
 	for it := l.Head; it != nil; it = it.Next {
-		o(it)
+		err := o(it)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func (l *LinkedList[T]) Filter(o func(*node.Node[T]) bool) (*LinkedList[T], error) {
+	filteredList := NewList[T]()
+	for it := l.Head; it != nil; it = it.Next {
+		if o(it) {
+			err := filteredList.InsertLast(it.Data)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return l, nil
 }
