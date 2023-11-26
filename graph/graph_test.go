@@ -23,9 +23,8 @@ func Test_Add(t *testing.T) {
 			parent: 0,
 			want: func(err error) {
 				is.Nil(err)
-				is.EqualValues(graph.Vertices.GetSize(), 1)
-				data, err := graph.Vertices.GetData(0)
-				is.Nil(err)
+				is.EqualValues(len(graph.Vertices), 1)
+				data := graph.Vertices[0]
 				is.Equal(data.GetVertexData(), 1)
 			},
 		},
@@ -35,17 +34,16 @@ func Test_Add(t *testing.T) {
 			parent: 1,
 			want: func(err error) {
 				is.Nil(err)
-				is.EqualValues(graph.Vertices.GetSize(), 2)
-				data, err := graph.Vertices.GetData(1)
+				is.EqualValues(len(graph.Vertices), 2)
+				data := graph.Vertices[1]
 				is.Nil(err)
 				is.Equal(data.GetVertexData(), 2)
-				is.EqualValues(data.Neighbours.GetSize(), 0)
+				is.EqualValues(len(data.Neighbours), 0)
 
-				parentVertex, err := graph.Vertices.GetData(0)
+				parentVertex := graph.Vertices[0]
 				is.Nil(err)
-				is.EqualValues(parentVertex.Neighbours.GetSize(), 1)
-				data, err = parentVertex.Neighbours.GetData(0)
-				is.Nil(err)
+				is.EqualValues(len(parentVertex.Neighbours), 1)
+				data = parentVertex.Neighbours[0]
 				is.Equal(data.GetVertexData(), 2)
 			},
 		},
@@ -55,7 +53,7 @@ func Test_Add(t *testing.T) {
 			parent: 2,
 			want: func(err error) {
 				is.Error(err, fmt.Errorf("data 1 already present in graph"))
-				is.EqualValues(graph.Vertices.GetSize(), 2)
+				is.EqualValues(len(graph.Vertices), 2)
 			},
 		},
 		{
@@ -64,7 +62,7 @@ func Test_Add(t *testing.T) {
 			parent: 999,
 			want: func(err error) {
 				is.Error(err, fmt.Errorf("data 999 not found in graph"))
-				is.EqualValues(graph.Vertices.GetSize(), 2)
+				is.EqualValues(len(graph.Vertices), 2)
 			},
 		},
 	}

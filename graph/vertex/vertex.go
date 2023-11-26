@@ -1,18 +1,16 @@
 package vertex
 
-import (
-	"github.com/OladapoAjala/datastructures/sequences/linkedlist"
-)
+import "fmt"
 
 type Vertex[V any] struct {
 	VertexData V
-	Neighbours *linkedlist.LinkedList[*Vertex[V]]
+	Neighbours []*Vertex[V]
 }
 
 func NewVertex[V any](data V) *Vertex[V] {
 	return &Vertex[V]{
 		VertexData: data,
-		Neighbours: linkedlist.NewList[*Vertex[V]](),
+		Neighbours: make([]*Vertex[V], 0),
 	}
 }
 
@@ -20,17 +18,26 @@ func (v *Vertex[V]) GetVertexData() V {
 	return v.VertexData
 }
 
-func (v *Vertex[V]) AddNeighbour(neighbour *Vertex[V]) error {
-	return v.Neighbours.InsertLast(neighbour)
+func (v *Vertex[V]) AddNeighbour(neighbour *Vertex[V]) {
+	v.Neighbours = append(v.Neighbours, neighbour)
 }
 
 func (v *Vertex[V]) RemoveNeighbour(neighbour *Vertex[V]) error {
 	var index int32 = 0
-	for it := v.Neighbours.Head; it != nil; it = it.Next {
-		if it.Data == neighbour {
+	found := false
+	for i, n := range v.Neighbours {
+		if n == neighbour {
+			index = int32(i)
+			found = true
 			break
 		}
-		index++
 	}
-	return v.Neighbours.Delete(index)
+	if !found {
+		return fmt.Errorf("vertex %v not found in tree", neighbour)
+	}
+
+	neighbours := v.Neighbours[0:index]
+	neighbours = append(neighbours, v.Neighbours[index+1:]...)
+	v.Neighbours = neighbours
+	return nil
 }
