@@ -1,32 +1,32 @@
 # Datastructures as taught in [6.006](https://www.youtube.com/playlist?list=PLUl4u3cNGP63EdVPNLG3ToM6LaEUuStEY)
 
 1. **Sequences**
-   i. Dynamic Array
-   ii. Linked List
-   iii. Static Array
+   - Dynamic Array
+   - Linked List
+   - Static Array
 
 2. **Sets**
-   i. Sorted Array
+   - Sorted Array
 
 3. **Queues**
-   i. Normal Queue
-   ii. Priority Queue
+   - Normal Queue
+   - Priority Queue
 
 4. **Stacks**
 
 5. **Heaps**
-   i. Min Heap
-   ii. Max Heap (TODO)
+   - Min Heap
+   - Max Heap (TODO)
 
 6. **Trees**
-   i. AVL Trees
-   ii. Binary Tree (Sequence Tree)
-   iii. Binary Search Tree (Set Tree)
+   - AVL Trees
+   - Binary Tree (Sequence Tree)
+   - Binary Search Tree (Set Tree)
 
 7. **Union Find**
 8. **Hash Tables**
-   i. Double Hashing
-   ii. Separate Chaining
+   - Double Hashing
+   - Separate Chaining
 
 9. **Graphs**
 
