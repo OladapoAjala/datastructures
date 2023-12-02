@@ -31,23 +31,22 @@ func (g *Graph[V, W]) DepthFirstSearch(start *vertex.Vertex[V, W]) {
 		fmt.Printf(" -> %v", p.State)
 		p = parent[p]
 	}
-
-	fmt.Printf("\nCount %d\n", count)
 }
 
 func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W]) {
-	if len(v.Edges) == 0 {
+	count++
+	fmt.Printf("%v ", v.GetState())
+	if v.HasEmptyEdges() {
 		return
 	}
 
-	for d := range v.Edges {
+	for edge := range v.Edges {
 		count++
-		if _, visited := parent[d]; visited {
+		if _, visited := parent[edge]; visited {
 			continue
 		}
-		fmt.Printf("%v ", d.State)
-		parent[d] = v
-		g.depthFirstSearch(d, parent)
+		parent[edge] = v
+		g.depthFirstSearch(edge, parent)
 	}
 }
 
