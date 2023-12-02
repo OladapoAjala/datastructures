@@ -101,3 +101,16 @@ func Test_DepthFirstSearch(t *testing.T) {
 	graph.Add(1, "E", "A")
 	graph.DepthFirstSearch(graph.Vertices[0])
 }
+
+func Test_BreadthFirstSearch(t *testing.T) {
+	graph := NewGraph[string, int]()
+	graph.Add(1, "", "A")
+	graph.Add(1, "A", "B")
+	graph.Add(1, "A", "C")
+	graph.Add(1, "B", "D")
+	graph.Add(1, "B", "E")
+	graph.Add(1, "C", "F")
+	graph.Add(1, "C", "E")
+	graph.Add(1, "E", "A")
+	graph.BreadthFirstSearch(graph.Vertices[0])
+}

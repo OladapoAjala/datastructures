@@ -52,10 +52,12 @@ func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*verte
 
 func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
 	visitedNodes := make(map[*vertex.Vertex[V, W]]bool)
-	parents := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
 	vertices := queue.NewQueue[*vertex.Vertex[V, W]]()
+
 	vertices.Enqueue(start)
-	parents[start] = nil
+	visitedNodes[start] = true
+	parent[start] = nil
 
 	for v, err := vertices.Dequeue(); err == nil; v, err = vertices.Dequeue() {
 		for u := range v.Edges {
@@ -63,14 +65,14 @@ func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
 				continue
 			}
 
-			parents[u] = v
+			parent[u] = v
 			visitedNodes[u] = true
 			err := vertices.Enqueue(u)
 			if err != nil {
 				return err
 			}
 		}
-		fmt.Println(v)
+		fmt.Println(v.GetState())
 	}
 	return nil
 }
@@ -142,6 +144,6 @@ func (g *Graph[V, W]) Add(weight W, parent, state V) error {
 
 	v := vertex.NewVertex[V, W](state)
 	parentVertex.AddEdge(v, weight)
-		g.Vertices = append(g.Vertices, v)
+	g.Vertices = append(g.Vertices, v)
 	return nil
 }
