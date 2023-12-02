@@ -9,7 +9,7 @@ import (
 
 func Test_Add(t *testing.T) {
 	is := assert.New(t)
-	graph := NewGraph[int]()
+	graph := NewGraph[int, int]()
 
 	tests := []struct {
 		name   string
@@ -38,13 +38,13 @@ func Test_Add(t *testing.T) {
 				data := graph.Vertices[1]
 				is.Nil(err)
 				is.Equal(data.GetVertexData(), 2)
-				is.EqualValues(len(data.Neighbours), 0)
+				is.EqualValues(len(data.Edges), 0)
 
 				parentVertex := graph.Vertices[0]
 				is.Nil(err)
-				is.EqualValues(len(parentVertex.Neighbours), 1)
-				data = parentVertex.Neighbours[0]
-				is.Equal(data.GetVertexData(), 2)
+				is.EqualValues(len(parentVertex.Edges), 1)
+				_, present := parentVertex.Edges[data]
+				is.True(present)
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func Test_Add(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := graph.Add(tt.data, tt.parent)
+			err := graph.Add(0, tt.data, tt.parent)
 			tt.want(err)
 		})
 	}

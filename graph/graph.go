@@ -5,20 +5,23 @@ import (
 
 	"github.com/OladapoAjala/datastructures/graph/vertex"
 	"github.com/OladapoAjala/datastructures/queues/queue"
+	"golang.org/x/exp/constraints"
 )
 
-type Graph[V comparable] struct {
-	Vertices []*vertex.Vertex[V]
+type Graph[V comparable, W constraints.Ordered] struct {
+	Vertices []*vertex.Vertex[V, W]
 }
 
-func NewGraph[V comparable]() *Graph[V] {
-	return &Graph[V]{
-		Vertices: make([]*vertex.Vertex[V], 0),
+func NewGraph[V comparable, W constraints.Ordered]() *Graph[V, W] {
+	return &Graph[V, W]{
+		Vertices: make([]*vertex.Vertex[V, W], 0),
 	}
 }
 
-func (g *Graph[V]) DepthFirstSearch(start *vertex.Vertex[V]) {
-	parent := make(map[*vertex.Vertex[V]]*vertex.Vertex[V])
+var count = 0
+
+func (g *Graph[V, W]) DepthFirstSearch(start *vertex.Vertex[V, W]) {
+	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
 	parent[start] = nil
 	g.depthFirstSearch(start, parent)
 
@@ -29,29 +32,31 @@ func (g *Graph[V]) DepthFirstSearch(start *vertex.Vertex[V]) {
 	}
 }
 
-func (g *Graph[V]) depthFirstSearch(v *vertex.Vertex[V], parent map[*vertex.Vertex[V]]*vertex.Vertex[V]) {
-	if v.Neighbours == nil {
+func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W]) {
+	if len(v.Edges) == 0 {
 		return
 	}
+
 	fmt.Printf("%v\n", v.VertexData)
-	for _, u := range v.Neighbours {
-		if _, visited := parent[u]; visited {
+	for d, _ := range v.Edges {
+		count++
+		if _, visited := parent[d]; visited {
 			continue
 		}
-		parent[u] = v
-		g.depthFirstSearch(u, parent)
+		parent[d] = v
+		g.depthFirstSearch(d, parent)
 	}
 }
 
-func (g *Graph[V]) BreadthFirstSearch(start *vertex.Vertex[V]) error {
-	visitedNodes := make(map[*vertex.Vertex[V]]bool)
-	parents := make(map[*vertex.Vertex[V]]*vertex.Vertex[V])
-	vertices := queue.NewQueue[*vertex.Vertex[V]]()
+func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
+	visitedNodes := make(map[*vertex.Vertex[V, W]]bool)
+	parents := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	vertices := queue.NewQueue[*vertex.Vertex[V, W]]()
 	vertices.Enqueue(start)
 	parents[start] = nil
 
 	for v, err := vertices.Dequeue(); err == nil; v, err = vertices.Dequeue() {
-		for _, u := range v.Neighbours {
+		for u, _ := range v.Edges {
 			if _, visited := visitedNodes[u]; visited {
 				continue
 			}
@@ -68,7 +73,34 @@ func (g *Graph[V]) BreadthFirstSearch(start *vertex.Vertex[V]) error {
 	return nil
 }
 
-func (g *Graph[V]) search(data V) (int, error) {
+func (g *Graph[V, W]) ShortestPath(start, stop *vertex.Vertex[V, W]) error {
+	// delta := make(map[*vertex.Vertex[V, W]]int)
+	// pi := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	// delta[start] = 0
+	// pi[start] = nil
+
+	// vertices := queue.NewQueue[*vertex.Vertex[V, W]]()
+	// vertices.Enqueue(start)
+	// for v, err := vertices.Dequeue(); err == nil; v, err = vertices.Dequeue() {
+	// 	for _, u := range v.Neighbours {
+	// 		if _, visited := visitedNodes[u]; visited {
+	// 			continue
+	// 		}
+
+	// 		parents[u] = v
+	// 		visitedNodes[u] = true
+	// 		err := vertices.Enqueue(u)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// 	fmt.Println(v)
+	// }
+
+	return nil
+}
+
+func (g *Graph[V, W]) search(data V) (int, error) {
 	for i, d := range g.Vertices {
 		if d.VertexData == data {
 			return i, nil
@@ -77,7 +109,7 @@ func (g *Graph[V]) search(data V) (int, error) {
 	return -1, fmt.Errorf("data %v not found in graph", data)
 }
 
-func (g *Graph[V]) contains(data V) bool {
+func (g *Graph[V, W]) contains(data V) bool {
 	for _, d := range g.Vertices {
 		if d.VertexData == data {
 			return true
@@ -86,9 +118,9 @@ func (g *Graph[V]) contains(data V) bool {
 	return false
 }
 
-func (g *Graph[V]) Add(data, parent V) error {
+func (g *Graph[V, W]) Add(weight W, data, parent V) error {
 	if len(g.Vertices) == 0 {
-		g.Vertices = append(g.Vertices, vertex.NewVertex(data))
+		g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](data))
 		return nil
 	}
 
@@ -99,9 +131,9 @@ func (g *Graph[V]) Add(data, parent V) error {
 	if err != nil {
 		return err
 	}
-	parentVertex := g.Vertices[parentIndex]
-	v := vertex.NewVertex(data)
+	v := vertex.NewVertex[V, W](data)
 	g.Vertices = append(g.Vertices, v)
-	parentVertex.Neighbours = append(parentVertex.Neighbours, v)
+	parentVertex := g.Vertices[parentIndex]
+	parentVertex.AddEdge(v, weight)
 	return nil
 }

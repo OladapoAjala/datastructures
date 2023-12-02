@@ -1,43 +1,29 @@
 package vertex
 
-import "fmt"
+import "golang.org/x/exp/constraints"
 
-type Vertex[V any] struct {
+type destination[V any, W constraints.Ordered] *Vertex[V, W]
+
+type Vertex[V any, W constraints.Ordered] struct {
 	VertexData V
-	Neighbours []*Vertex[V]
+	Edges      map[destination[V, W]]W
 }
 
-func NewVertex[V any](data V) *Vertex[V] {
-	return &Vertex[V]{
+func NewVertex[V any, W constraints.Ordered](data V) *Vertex[V, W] {
+	return &Vertex[V, W]{
 		VertexData: data,
-		Neighbours: make([]*Vertex[V], 0),
+		Edges:      make(map[destination[V, W]]W),
 	}
 }
 
-func (v *Vertex[V]) GetVertexData() V {
+func (v *Vertex[V, W]) GetVertexData() V {
 	return v.VertexData
 }
 
-func (v *Vertex[V]) AddNeighbour(neighbour *Vertex[V]) {
-	v.Neighbours = append(v.Neighbours, neighbour)
+func (v *Vertex[V, W]) AddEdge(edge *Vertex[V, W], w W) {
+	v.Edges[edge] = w
 }
 
-func (v *Vertex[V]) RemoveNeighbour(neighbour *Vertex[V]) error {
-	var index int32 = 0
-	found := false
-	for i, n := range v.Neighbours {
-		if n == neighbour {
-			index = int32(i)
-			found = true
-			break
-		}
-	}
-	if !found {
-		return fmt.Errorf("vertex %v not found in tree", neighbour)
-	}
-
-	neighbours := v.Neighbours[0:index]
-	neighbours = append(neighbours, v.Neighbours[index+1:]...)
-	v.Neighbours = neighbours
-	return nil
+func (v *Vertex[V, W]) RemoveEdge(edge *Vertex[V, W]) {
+	delete(v.Edges, edge)
 }
