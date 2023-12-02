@@ -27,8 +27,8 @@ func (v *Vertex[V, W]) RemoveEdge(edge *Vertex[V, W]) {
 }
 
 func (v *Vertex[V, W]) HasEdge(data V) bool {
-	for e := range v.Edges {
-		if e.State == data {
+	for state := range v.Edges {
+		if state.GetState() == data {
 			return true
 		}
 	}
