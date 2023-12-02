@@ -103,13 +103,13 @@ func (g *Graph[V, W]) ShortestPath(start, stop *vertex.Vertex[V, W]) error {
 	return nil
 }
 
-func (g *Graph[V, W]) search(data V) (int, error) {
+func (g *Graph[V, W]) search(data V) (*vertex.Vertex[V, W], error) {
 	for i, d := range g.Vertices {
 		if d.State == data {
-			return i, nil
+			return g.Vertices[i], nil
 		}
 	}
-	return -1, fmt.Errorf("data %v not found in graph", data)
+	return nil, fmt.Errorf("data %v not found in graph", data)
 }
 
 func (g *Graph[V, W]) contains(data V) bool {
@@ -121,35 +121,28 @@ func (g *Graph[V, W]) contains(data V) bool {
 	return false
 }
 
-func (g *Graph[V, W]) Add(weight W, parent, data V) error {
+func (g *Graph[V, W]) Add(weight W, parent, state V) error {
 	if len(g.Vertices) == 0 {
-		g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](data))
+		g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](state))
 		return nil
 	}
 
-	if g.contains(data) {
-		return fmt.Errorf("data %v already present in graph", data)
-	}
-	parentIndex, err := g.search(parent)
+	parentVertex, err := g.search(parent)
 	if err != nil {
 		return err
 	}
-	parentVertex := g.Vertices[parentIndex]
-	if parentVertex.HasEdge(data) {
-		return fmt.Errorf("edge %v -> %v already present in graph", parent, data)
+	if parentVertex.HasEdge(state) {
+		return fmt.Errorf("edge %v -> %v is already present in graph", parent, state)
 	}
 
-	dataIndex, err := g.search(data)
-	if dataIndex != -1 {
-		dataVertex := g.Vertices[dataIndex]
-		parentVertex.AddEdge(dataVertex, weight)
+	stateVertex, err := g.search(state)
+	if stateVertex != nil {
+		parentVertex.AddEdge(stateVertex, weight)
 		return nil
 	}
 
-	v := vertex.NewVertex[V, W](data)
+	v := vertex.NewVertex[V, W](state)
 	parentVertex.AddEdge(v, weight)
-	if !g.contains(data) {
 		g.Vertices = append(g.Vertices, v)
-	}
 	return nil
 }
