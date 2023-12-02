@@ -26,10 +26,13 @@ func (g *Graph[V, W]) DepthFirstSearch(start *vertex.Vertex[V, W]) {
 	g.depthFirstSearch(start, parent)
 
 	fmt.Println("---back tracking---")
-	for p := parent[g.Vertices[4]]; p != nil; {
-		fmt.Printf("%v -> ", p.VertexData)
+	fmt.Printf("%v", g.Vertices[len(g.Vertices)-1].State)
+	for p := parent[g.Vertices[len(g.Vertices)-1]]; p != nil; {
+		fmt.Printf(" -> %v", p.State)
 		p = parent[p]
 	}
+
+	fmt.Printf("\nCount %d\n", count)
 }
 
 func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W]) {
@@ -37,12 +40,12 @@ func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*verte
 		return
 	}
 
-	fmt.Printf("%v\n", v.VertexData)
-	for d, _ := range v.Edges {
+	for d := range v.Edges {
 		count++
 		if _, visited := parent[d]; visited {
 			continue
 		}
+		fmt.Printf("%v ", d.State)
 		parent[d] = v
 		g.depthFirstSearch(d, parent)
 	}
@@ -56,7 +59,7 @@ func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
 	parents[start] = nil
 
 	for v, err := vertices.Dequeue(); err == nil; v, err = vertices.Dequeue() {
-		for u, _ := range v.Edges {
+		for u := range v.Edges {
 			if _, visited := visitedNodes[u]; visited {
 				continue
 			}
@@ -102,7 +105,7 @@ func (g *Graph[V, W]) ShortestPath(start, stop *vertex.Vertex[V, W]) error {
 
 func (g *Graph[V, W]) search(data V) (int, error) {
 	for i, d := range g.Vertices {
-		if d.VertexData == data {
+		if d.State == data {
 			return i, nil
 		}
 	}
@@ -111,14 +114,14 @@ func (g *Graph[V, W]) search(data V) (int, error) {
 
 func (g *Graph[V, W]) contains(data V) bool {
 	for _, d := range g.Vertices {
-		if d.VertexData == data {
+		if d.State == data {
 			return true
 		}
 	}
 	return false
 }
 
-func (g *Graph[V, W]) Add(weight W, data, parent V) error {
+func (g *Graph[V, W]) Add(weight W, parent, data V) error {
 	if len(g.Vertices) == 0 {
 		g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](data))
 		return nil
@@ -131,9 +134,22 @@ func (g *Graph[V, W]) Add(weight W, data, parent V) error {
 	if err != nil {
 		return err
 	}
-	v := vertex.NewVertex[V, W](data)
-	g.Vertices = append(g.Vertices, v)
 	parentVertex := g.Vertices[parentIndex]
+	if parentVertex.HasEdge(data) {
+		return fmt.Errorf("edge %v -> %v already present in graph", parent, data)
+	}
+
+	dataIndex, err := g.search(data)
+	if dataIndex != -1 {
+		dataVertex := g.Vertices[dataIndex]
+		parentVertex.AddEdge(dataVertex, weight)
+		return nil
+	}
+
+	v := vertex.NewVertex[V, W](data)
 	parentVertex.AddEdge(v, weight)
+	if !g.contains(data) {
+		g.Vertices = append(g.Vertices, v)
+	}
 	return nil
 }
