@@ -7,9 +7,9 @@ type Vertex[V comparable, W constraints.Ordered] struct {
 	Edges map[*Vertex[V, W]]W
 }
 
-func NewVertex[V comparable, W constraints.Ordered](data V) *Vertex[V, W] {
+func NewVertex[V comparable, W constraints.Ordered](state V) *Vertex[V, W] {
 	return &Vertex[V, W]{
-		State: data,
+		State: state,
 		Edges: make(map[*Vertex[V, W]]W),
 	}
 }
@@ -26,11 +26,20 @@ func (v *Vertex[V, W]) RemoveEdge(edge *Vertex[V, W]) {
 	delete(v.Edges, edge)
 }
 
-func (v *Vertex[V, W]) HasEdge(data V) bool {
-	for state := range v.Edges {
-		if state.GetState() == data {
+func (v *Vertex[V, W]) HasEdge(state V) bool {
+	for edge := range v.Edges {
+		if edge.GetState() == state {
 			return true
 		}
 	}
 	return false
+}
+
+func (v *Vertex[V, W]) GetEdge(state V) *Vertex[V, W] {
+	for edge := range v.Edges {
+		if edge.GetState() == state {
+			return edge
+		}
+	}
+	return nil
 }
