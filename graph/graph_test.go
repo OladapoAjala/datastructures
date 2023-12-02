@@ -99,7 +99,8 @@ func Test_DepthFirstSearch(t *testing.T) {
 	graph.Add(1, "C", "F")
 	graph.Add(1, "C", "E")
 	graph.Add(1, "E", "A")
-	graph.DepthFirstSearch(graph.Vertices[0])
+	// graph.DepthFirstSearch(graph.Vertices[0])
+	graph.DepthFirstSearchAll()
 }
 
 func Test_BreadthFirstSearch(t *testing.T) {

@@ -35,6 +35,10 @@ func (v *Vertex[V, W]) HasEdge(state V) bool {
 	return false
 }
 
+func (v *Vertex[V, W]) HasEmptyEdges() bool {
+	return len(v.Edges) == 0
+}
+
 func (v *Vertex[V, W]) GetEdge(state V) *Vertex[V, W] {
 	for edge := range v.Edges {
 		if edge.GetState() == state {

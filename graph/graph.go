@@ -18,7 +18,16 @@ func NewGraph[V comparable, W constraints.Ordered]() *Graph[V, W] {
 	}
 }
 
-var count = 0
+func (g *Graph[V, W]) DepthFirstSearchAll() {
+	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	for _, v := range g.Vertices {
+		if _, visited := parent[v]; visited {
+			continue
+		}
+		parent[v] = nil
+		g.depthFirstSearch(v, parent)
+	}
+}
 
 func (g *Graph[V, W]) DepthFirstSearch(start *vertex.Vertex[V, W]) {
 	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
@@ -34,14 +43,11 @@ func (g *Graph[V, W]) DepthFirstSearch(start *vertex.Vertex[V, W]) {
 }
 
 func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W]) {
-	count++
-	fmt.Printf("%v ", v.GetState())
 	if v.HasEmptyEdges() {
 		return
 	}
 
 	for edge := range v.Edges {
-		count++
 		if _, visited := parent[edge]; visited {
 			continue
 		}
@@ -100,7 +106,6 @@ func (g *Graph[V, W]) ShortestPath(start, stop *vertex.Vertex[V, W]) error {
 	// 	}
 	// 	fmt.Println(v)
 	// }
-
 	return nil
 }
 
