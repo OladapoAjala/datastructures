@@ -18,6 +18,58 @@ func NewGraph[V comparable, W constraints.Ordered]() *Graph[V, W] {
 	}
 }
 
+func (g *Graph[V, W]) HasCycle() bool {
+	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	for _, v := range g.Vertices {
+		if _, visited := parent[v]; visited {
+			continue
+		}
+		parent[v] = nil
+		if g.hasCycle(v, parent) {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Graph[V, W]) hasCycle(v *vertex.Vertex[V, W], parent map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W]) bool {
+	if v.InProcess {
+		return true
+	}
+	if v.HasEmptyEdges() {
+		return false
+	}
+
+	v.InProcess = true
+	for e := range v.Edges {
+		if e.InProcess {
+			return true
+		}
+		if _, visited := parent[e]; visited {
+			continue
+		}
+		parent[e] = v
+		if g.hasCycle(e, parent) {
+			return true
+		}
+	}
+	v.InProcess = false
+	return false
+}
+
+// TODO
+func (g *Graph[V, W]) TopologicalSort() *vertex.Path[V, W] {
+	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	for _, v := range g.Vertices {
+		if _, visited := parent[v]; visited {
+			continue
+		}
+		parent[v] = nil
+		g.depthFirstSearch(v, parent)
+	}
+	return nil
+}
+
 func (g *Graph[V, W]) DepthFirstSearchAll() {
 	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
 	for _, v := range g.Vertices {
@@ -33,13 +85,6 @@ func (g *Graph[V, W]) DepthFirstSearch(start *vertex.Vertex[V, W]) {
 	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
 	parent[start] = nil
 	g.depthFirstSearch(start, parent)
-
-	fmt.Println("---back tracking---")
-	fmt.Printf("%v", g.Vertices[len(g.Vertices)-1].State)
-	for p := parent[g.Vertices[len(g.Vertices)-1]]; p != nil; {
-		fmt.Printf(" -> %v", p.State)
-		p = parent[p]
-	}
 }
 
 func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W]) {
@@ -135,7 +180,12 @@ func (g *Graph[V, W]) Add(weight W, parent, state V) error {
 
 	parentVertex, err := g.search(parent)
 	if err != nil {
-		return err
+		if parent == *new(V) {
+			g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](state))
+			return nil
+		} else {
+			return err
+		}
 	}
 	if parentVertex.HasEdge(state) {
 		return fmt.Errorf("edge %v -> %v is already present in graph", parent, state)

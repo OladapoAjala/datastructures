@@ -1,10 +1,13 @@
 package vertex
 
-import "golang.org/x/exp/constraints"
+import (
+	"golang.org/x/exp/constraints"
+)
 
 type Vertex[V comparable, W constraints.Ordered] struct {
-	State V
-	Edges map[*Vertex[V, W]]W
+	State     V
+	Edges     map[*Vertex[V, W]]W
+	InProcess bool
 }
 
 func NewVertex[V comparable, W constraints.Ordered](state V) *Vertex[V, W] {

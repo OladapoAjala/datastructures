@@ -115,3 +115,116 @@ func Test_BreadthFirstSearch(t *testing.T) {
 	graph.Add(1, "E", "A")
 	graph.BreadthFirstSearch(graph.Vertices[0])
 }
+
+func TestHasCycle(t *testing.T) {
+	tests := []struct {
+		name     string
+		setup    func(*Graph[string, int])
+		hasCycle bool
+	}{
+		{
+			name:     "Empty Graph",
+			setup:    func(g *Graph[string, int]) {},
+			hasCycle: false,
+		},
+		{
+			name: "Single Vertex No Cycle",
+			setup: func(g *Graph[string, int]) {
+				g.Add(0, "", "A")
+			},
+			hasCycle: false,
+		},
+		{
+			name: "Single Vertex With Self-Loop",
+			setup: func(g *Graph[string, int]) {
+				g.Add(0, "", "A")
+				g.Add(0, "A", "A")
+			},
+			hasCycle: true,
+		},
+		{
+			name: "Acyclic Graph",
+			setup: func(g *Graph[string, int]) {
+				g.Add(0, "", "A")
+				g.Add(0, "A", "B")
+				g.Add(0, "B", "C")
+			},
+			hasCycle: false,
+		},
+		{
+			name: "Simple Cycle",
+			setup: func(g *Graph[string, int]) {
+				g.Add(0, "", "A")
+				g.Add(0, "A", "B")
+				g.Add(0, "B", "C")
+				g.Add(0, "C", "A")
+			},
+			hasCycle: true,
+		},
+		{
+			name: "Complex Graph With Cycle",
+			setup: func(g *Graph[string, int]) {
+				g.Add(0, "", "A")
+				g.Add(0, "A", "B")
+				g.Add(0, "B", "C")
+				g.Add(0, "C", "D")
+				g.Add(0, "D", "B")
+			},
+			hasCycle: true,
+		},
+		{
+			name: "Complex Graph Without Cycle",
+			setup: func(g *Graph[string, int]) {
+				g.Add(0, "", "A")
+				g.Add(0, "A", "B")
+				g.Add(0, "B", "C")
+				g.Add(0, "C", "D")
+				g.Add(0, "D", "E")
+			},
+			hasCycle: false,
+		},
+		{
+			name: "Disconnected Graph With Cycle",
+			setup: func(g *Graph[string, int]) {
+				// Component 1 (Acyclic)
+				g.Add(0, "", "A")
+				g.Add(0, "A", "B")
+				// Component 2 (Cyclic)
+				g.Add(0, "", "X")
+				g.Add(0, "X", "Y")
+				g.Add(0, "Y", "X")
+			},
+			hasCycle: true,
+		},
+		{
+			name: "Disconnected Graph Without Cycle",
+			setup: func(g *Graph[string, int]) {
+				// Component 1
+				g.Add(0, "", "A")
+				g.Add(0, "A", "B")
+				// Component 2
+				g.Add(0, "", "X")
+				g.Add(0, "X", "Y")
+			},
+			hasCycle: false,
+		},
+		{
+			name: "Back Edge Test",
+			setup: func(g *Graph[string, int]) {
+				g.Add(0, "", "A")
+				g.Add(0, "A", "B")
+				g.Add(0, "B", "C")
+				g.Add(0, "C", "A")
+			},
+			hasCycle: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			graph := NewGraph[string, int]()
+			tt.setup(graph)
+			assert.Equal(t, tt.hasCycle, graph.HasCycle())
+		})
+	}
+}
