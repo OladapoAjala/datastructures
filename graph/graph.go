@@ -57,17 +57,38 @@ func (g *Graph[V, W]) hasCycle(v *vertex.Vertex[V, W], parent map[*vertex.Vertex
 	return false
 }
 
-// TODO
-func (g *Graph[V, W]) TopologicalSort() *vertex.Path[V, W] {
-	parent := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+func (g *Graph[V, W]) TopologicalSort() (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
+	if g.HasCycle() {
+		return nil, fmt.Errorf("cannot topologically sort cyclic graph")
+	}
+
+	visited := make(map[*vertex.Vertex[V, W]]bool)
+	sorted := linkedlist.NewList[*vertex.Vertex[V, W]]()
 	for _, v := range g.Vertices {
-		if _, visited := parent[v]; visited {
+		if _, visited := visited[v]; visited {
 			continue
 		}
-		parent[v] = nil
-		g.depthFirstSearch(v, parent)
+		visited[v] = false
+		g.topologicalSort(v, visited, sorted)
 	}
-	return nil
+	return sorted, nil
+}
+
+func (g *Graph[V, W]) topologicalSort(v *vertex.Vertex[V, W],
+	visited map[*vertex.Vertex[V, W]]bool,
+	path *linkedlist.LinkedList[*vertex.Vertex[V, W]]) error {
+	visited[v] = true
+	for e := range v.Edges {
+		if visited[e] {
+			continue
+		}
+
+		err := g.topologicalSort(e, visited, path)
+		if err != nil {
+			return err
+		}
+	}
+	return path.InsertFirst(v)
 }
 
 func (g *Graph[V, W]) DepthFirstSearchAll() {
@@ -88,10 +109,6 @@ func (g *Graph[V, W]) DepthFirstSearch(start *vertex.Vertex[V, W]) {
 }
 
 func (g *Graph[V, W]) depthFirstSearch(v *vertex.Vertex[V, W], parent map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W]) {
-	if v.HasEmptyEdges() {
-		return
-	}
-
 	for edge := range v.Edges {
 		if _, visited := parent[edge]; visited {
 			continue
@@ -128,7 +145,8 @@ func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
 	return nil
 }
 
-func (g *Graph[V, W]) ShortestPath(start, stop *vertex.Vertex[V, W]) error {
+// TODO
+func (g *Graph[V, W]) ShortestPath(start, stop *vertex.Vertex[V, W]) *linkedlist.LinkedList[*vertex.Vertex[V, W]] {
 	// delta := make(map[*vertex.Vertex[V, W]]int)
 	// pi := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
 	// delta[start] = 0
