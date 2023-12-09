@@ -1,10 +1,14 @@
 package graph
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
+	"github.com/OladapoAjala/datastructures/graph/vertex"
+	"github.com/OladapoAjala/datastructures/sequences/node"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_Add(t *testing.T) {
@@ -112,8 +116,60 @@ func Test_BreadthFirstSearch(t *testing.T) {
 	graph.Add(1, "B", "E")
 	graph.Add(1, "C", "F")
 	graph.Add(1, "C", "E")
-	graph.Add(1, "E", "A")
+	// graph.Add(1, "E", "A")
 	graph.BreadthFirstSearch(graph.Vertices[0])
+
+	s, _ := graph.TopologicalSort()
+	s.ForEach(func(n *node.Node[*vertex.Vertex[string, int]]) error {
+		fmt.Printf("%s -> ", n.Data.GetState())
+		return nil
+	})
+}
+
+func Test_ShortestPath(t *testing.T) {
+	graph := NewGraph[string, int]()
+	graph.Add(1, "", "A")
+	graph.Add(2, "A", "B")
+	graph.Add(1, "A", "C")
+	graph.Add(1, "B", "D")
+	graph.Add(2, "B", "E")
+	graph.Add(1, "C", "F")
+	graph.Add(1, "C", "B")
+
+	testCases := []struct {
+		Start         string
+		Stop          string
+		ExpectedPath  []string
+		ExpectedError error
+	}{
+		{"A", "B", []string{"A", "B"}, nil},
+		{"A", "F", []string{"A", "C", "F"}, nil},
+		{"E", "A", nil, errors.New("no path from E -> A")},
+		{"X", "Y", nil, errors.New("data X not found in graph")},
+		{"A", "X", nil, errors.New("data X not found in graph")},
+		{"A", "A", []string{"A"}, nil},
+		{"A", "C", []string{"A", "C"}, nil},
+		{"D", "D", []string{"D"}, nil},
+		{"F", "B", nil, errors.New("no path from F -> B")},
+	}
+
+	for _, tc := range testCases {
+		path, err := graph.ShortestPath(tc.Start, tc.Stop)
+
+		if tc.ExpectedError != nil {
+			require.Error(t, err)
+			require.EqualError(t, err, tc.ExpectedError.Error())
+		} else {
+			require.NoError(t, err)
+
+			var actualPath []string
+			path.ForEach(func(n *node.Node[*vertex.Vertex[string, int]]) error {
+				actualPath = append(actualPath, n.Data.GetState())
+				return nil
+			})
+			require.Equal(t, tc.ExpectedPath, actualPath)
+		}
+	}
 }
 
 func TestHasCycle(t *testing.T) {

@@ -145,31 +145,68 @@ func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
 	return nil
 }
 
-// TODO
-func (g *Graph[V, W]) ShortestPath(start, stop *vertex.Vertex[V, W]) *linkedlist.LinkedList[*vertex.Vertex[V, W]] {
-	// delta := make(map[*vertex.Vertex[V, W]]int)
-	// pi := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
-	// delta[start] = 0
-	// pi[start] = nil
+func (g *Graph[V, W]) ShortestPath(start, stop V) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
+	startVertex, err := g.search(start)
+	if err != nil {
+		return nil, err
+	}
+	stopVertex, err := g.search(stop)
+	if err != nil {
+		return nil, err
+	}
+	return g.shortestPath(startVertex, stopVertex)
+}
 
-	// vertices := queue.NewQueue[*vertex.Vertex[V, W]]()
-	// vertices.Enqueue(start)
-	// for v, err := vertices.Dequeue(); err == nil; v, err = vertices.Dequeue() {
-	// 	for _, u := range v.Neighbours {
-	// 		if _, visited := visitedNodes[u]; visited {
-	// 			continue
-	// 		}
+func (g *Graph[V, W]) shortestPath(start, stop *vertex.Vertex[V, W]) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
+	delta := make(map[V]W)
+	pi := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	delta[start.GetState()] = *new(W)
+	pi[start] = nil
 
-	// 		parents[u] = v
-	// 		visitedNodes[u] = true
-	// 		err := vertices.Enqueue(u)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 	}
-	// 	fmt.Println(v)
-	// }
-	return nil
+	vertices := queue.NewQueue[*vertex.Vertex[V, W]]()
+	vertices.Enqueue(start)
+	for v, err := vertices.Dequeue(); err == nil; v, err = vertices.Dequeue() {
+		for u, w := range v.Edges {
+			if _, visited := pi[u]; visited {
+				currDistance := delta[u.GetState()]
+				calcDistance := delta[v.GetState()] + w
+				if calcDistance < currDistance {
+					delta[u.GetState()] = calcDistance
+					pi[u] = v
+				}
+				continue
+			}
+
+			pi[u] = v
+			delta[u.GetState()] = delta[v.GetState()] + w
+			err := vertices.Enqueue(u)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	path := linkedlist.NewList[*vertex.Vertex[V, W]]()
+	end := stop
+	for end != nil {
+		err := path.InsertFirst(end)
+		if err != nil {
+			return nil, err
+		}
+		end = pi[end]
+	}
+
+	isValidPath := false
+	path.ForEach(func(n *node.Node[*vertex.Vertex[V, W]]) error {
+		if n.Data.GetState() == start.GetState() {
+			isValidPath = true
+		}
+		return nil
+	})
+	if isValidPath {
+		return path, nil
+	}
+	return nil, fmt.Errorf("no path from %v -> %v", start.GetState(), stop.GetState())
 }
 
 func (g *Graph[V, W]) search(data V) (*vertex.Vertex[V, W], error) {
