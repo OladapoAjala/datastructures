@@ -5,6 +5,8 @@ import (
 
 	"github.com/OladapoAjala/datastructures/graph/vertex"
 	"github.com/OladapoAjala/datastructures/queues/queue"
+	"github.com/OladapoAjala/datastructures/sequences/linkedlist"
+	"github.com/OladapoAjala/datastructures/sequences/node"
 	"golang.org/x/exp/constraints"
 )
 
