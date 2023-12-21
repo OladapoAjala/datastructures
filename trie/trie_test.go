@@ -8,7 +8,6 @@ import (
 
 func Test_Trie(t *testing.T) {
 	is := assert.New(t)
-	trie := NewTrie()
 
 	tests := []struct {
 		name   string
@@ -92,6 +91,7 @@ func Test_Trie(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			trie := NewTrie()
 			for _, word := range tt.words {
 				trie.Insert(word)
 			}
