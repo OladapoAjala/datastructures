@@ -120,8 +120,8 @@ func Test_BreadthFirstSearch(t *testing.T) {
 	graph.BreadthFirstSearch(graph.Vertices[0])
 
 	s, _ := graph.TopologicalSort()
-	s.ForEach(func(n *node.Node[*vertex.Vertex[string, int]]) error {
-		fmt.Printf("%s -> ", n.Data.GetState())
+	s.ForEach(func(n *node.Node[string]) error {
+		fmt.Printf("%s -> ", n.Data)
 		return nil
 	})
 }

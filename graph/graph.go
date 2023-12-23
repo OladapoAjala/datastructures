@@ -59,38 +59,39 @@ func (g *Graph[V, W]) hasCycle(v *vertex.Vertex[V, W], parent map[*vertex.Vertex
 	return false
 }
 
-func (g *Graph[V, W]) TopologicalSort() (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
+func (g *Graph[V, W]) TopologicalSort() (*linkedlist.LinkedList[V], error) {
 	if g.HasCycle() {
 		return nil, fmt.Errorf("cannot topologically sort cyclic graph")
 	}
 
-	visited := make(map[*vertex.Vertex[V, W]]bool)
-	sorted := linkedlist.NewList[*vertex.Vertex[V, W]]()
+	visited := make(map[V]bool)
+	path := linkedlist.NewList[V]()
 	for _, v := range g.Vertices {
-		if _, visited := visited[v]; visited {
+		if visited[v.GetState()] {
 			continue
 		}
-		visited[v] = false
-		g.topologicalSort(v, visited, sorted)
+		err := g.topologicalSort(v, visited, path)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return sorted, nil
+	return path, nil
 }
 
 func (g *Graph[V, W]) topologicalSort(v *vertex.Vertex[V, W],
-	visited map[*vertex.Vertex[V, W]]bool,
-	path *linkedlist.LinkedList[*vertex.Vertex[V, W]]) error {
-	visited[v] = true
+	visited map[V]bool,
+	path *linkedlist.LinkedList[V]) error {
+	visited[v.GetState()] = true
 	for e := range v.Edges {
-		if visited[e] {
+		if visited[e.GetState()] {
 			continue
 		}
-
 		err := g.topologicalSort(e, visited, path)
 		if err != nil {
 			return err
 		}
 	}
-	return path.InsertFirst(v)
+	return path.InsertFirst(v.GetState())
 }
 
 func (g *Graph[V, W]) DepthFirstSearchAll() {
@@ -148,11 +149,11 @@ func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
 }
 
 func (g *Graph[V, W]) ShortestPath(start, stop V) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
-	startVertex, err := g.search(start)
+	startVertex, err := g.Search(start)
 	if err != nil {
 		return nil, err
 	}
-	stopVertex, err := g.search(stop)
+	stopVertex, err := g.Search(stop)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +212,7 @@ func (g *Graph[V, W]) shortestPath(start, stop *vertex.Vertex[V, W]) (*linkedlis
 	return nil, fmt.Errorf("no path from %v -> %v", start.GetState(), stop.GetState())
 }
 
-func (g *Graph[V, W]) search(data V) (*vertex.Vertex[V, W], error) {
+func (g *Graph[V, W]) Search(data V) (*vertex.Vertex[V, W], error) {
 	for i, d := range g.Vertices {
 		if d.State == data {
 			return g.Vertices[i], nil
@@ -235,7 +236,7 @@ func (g *Graph[V, W]) Add(weight W, parent, state V) error {
 		return nil
 	}
 
-	parentVertex, err := g.search(parent)
+	parentVertex, err := g.Search(parent)
 	if err != nil {
 		if parent == *new(V) {
 			g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](state))
@@ -248,7 +249,7 @@ func (g *Graph[V, W]) Add(weight W, parent, state V) error {
 		return fmt.Errorf("edge %v -> %v is already present in graph", parent, state)
 	}
 
-	stateVertex, err := g.search(state)
+	stateVertex, err := g.Search(state)
 	if stateVertex != nil {
 		parentVertex.AddEdge(stateVertex, weight)
 		return nil
