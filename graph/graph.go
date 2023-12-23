@@ -59,39 +59,37 @@ func (g *Graph[V, W]) hasCycle(v *vertex.Vertex[V, W], parent map[*vertex.Vertex
 	return false
 }
 
-func (g *Graph[V, W]) TopologicalSort() (*linkedlist.LinkedList[V], error) {
+func (g *Graph[V, W]) TopologicalSort() (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
 	if g.HasCycle() {
 		return nil, fmt.Errorf("cannot topologically sort cyclic graph")
 	}
 
-	visited := make(map[V]bool)
-	path := linkedlist.NewList[V]()
+	visited := make(map[*vertex.Vertex[V, W]]bool)
+	sorted := linkedlist.NewList[*vertex.Vertex[V, W]]()
 	for _, v := range g.Vertices {
-		if visited[v.GetState()] {
+		if _, visited := visited[v]; visited {
 			continue
 		}
-		err := g.topologicalSort(v, visited, path)
-		if err != nil {
-			return nil, err
-		}
+		g.topologicalSort(v, visited, sorted)
 	}
-	return path, nil
+	return sorted, nil
 }
 
 func (g *Graph[V, W]) topologicalSort(v *vertex.Vertex[V, W],
-	visited map[V]bool,
-	path *linkedlist.LinkedList[V]) error {
-	visited[v.GetState()] = true
+	visited map[*vertex.Vertex[V, W]]bool,
+	path *linkedlist.LinkedList[*vertex.Vertex[V, W]]) error {
+	visited[v] = true
 	for e := range v.Edges {
-		if visited[e.GetState()] {
+		if visited[e] {
 			continue
 		}
+
 		err := g.topologicalSort(e, visited, path)
 		if err != nil {
 			return err
 		}
 	}
-	return path.InsertFirst(v.GetState())
+	return path.InsertFirst(v)
 }
 
 func (g *Graph[V, W]) DepthFirstSearchAll() {
@@ -146,6 +144,27 @@ func (g *Graph[V, W]) BreadthFirstSearch(start *vertex.Vertex[V, W]) error {
 		fmt.Println(v.GetState())
 	}
 	return nil
+}
+
+func (g *Graph[V, W]) ShortestPathTopologicalSort(start, stop V) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
+	startVertex, err := g.Search(start)
+	if err != nil {
+		return nil, err
+	}
+	stopVertex, err := g.Search(stop)
+	if err != nil {
+		return nil, err
+	}
+	return g.shortestPathTopologicalSort(startVertex, stopVertex)
+}
+
+func (g *Graph[V, W]) shortestPathTopologicalSort(start, stop *vertex.Vertex[V, W]) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
+	_, err := g.TopologicalSort()
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 func (g *Graph[V, W]) ShortestPath(start, stop V) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
