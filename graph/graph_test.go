@@ -137,7 +137,6 @@ func Test_BreadthFirstSearch(t *testing.T) {
 
 func Test_ShortestPath(t *testing.T) {
 	graph := NewGraph[string, int]()
-	graph.Add(1, "", "A")
 	graph.Add(2, "A", "B")
 	graph.Add(1, "A", "C")
 	graph.Add(1, "B", "D")
