@@ -159,12 +159,47 @@ func (g *Graph[V, W]) ShortestPathTopologicalSort(start, stop V) (*linkedlist.Li
 }
 
 func (g *Graph[V, W]) shortestPathTopologicalSort(start, stop *vertex.Vertex[V, W]) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
-	_, err := g.TopologicalSort()
+	topologicalOrder, err := g.TopologicalSort()
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	pi := make(map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W])
+	delta := make(map[*vertex.Vertex[V, W]]W)
+	first := topologicalOrder.Head.Data
+	pi[first] = nil
+	delta[first] = *new(W)
+
+	_ = topologicalOrder.ForEach(func(n *node.Node[*vertex.Vertex[V, W]]) error {
+		for e, w := range n.Data.Edges {
+			if _, visited := pi[e]; visited {
+				currWeight := delta[e]
+				calcWeight := delta[n.Data] + w
+				if currWeight <= calcWeight {
+					continue
+				}
+			}
+
+			pi[e] = n.Data
+			delta[e] = delta[n.Data] + w
+		}
+		return nil
+	})
+
+	return path(pi, start, stop)
+}
+
+func path[V comparable, W constraints.Ordered](pi map[*vertex.Vertex[V, W]]*vertex.Vertex[V, W], start, end *vertex.Vertex[V, W]) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
+	if end == start {
+		list := linkedlist.NewList[*vertex.Vertex[V, W]]()
+		return list, list.InsertLast(end)
+	}
+
+	list, err := path(pi, start, pi[end])
+	if err != nil {
+		return nil, err
+	}
+	return list, list.InsertLast(end)
 }
 
 func (g *Graph[V, W]) ShortestPath(start, stop V) (*linkedlist.LinkedList[*vertex.Vertex[V, W]], error) {
