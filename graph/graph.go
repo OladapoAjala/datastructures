@@ -38,10 +38,6 @@ func (g *Graph[V, W]) hasCycle(v *vertex.Vertex[V, W], parent map[*vertex.Vertex
 	if v.InProcess {
 		return true
 	}
-	if v.HasEmptyEdges() {
-		return false
-	}
-
 	v.InProcess = true
 	for e := range v.Edges {
 		if e.InProcess {
@@ -286,15 +282,14 @@ func (g *Graph[V, W]) contains(data V) bool {
 
 func (g *Graph[V, W]) Add(weight W, parent, state V) error {
 	if len(g.Vertices) == 0 {
-		g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](state))
-		return nil
+		g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](parent))
 	}
 
 	parentVertex, err := g.Search(parent)
 	if err != nil {
-		if parent == *new(V) {
-			g.Vertices = append(g.Vertices, vertex.NewVertex[V, W](state))
-			return nil
+		if err.Error() == fmt.Sprintf("data %v not found in graph", parent) {
+			parentVertex = vertex.NewVertex[V, W](parent)
+			g.Vertices = append(g.Vertices, parentVertex)
 		} else {
 			return err
 		}
@@ -303,7 +298,7 @@ func (g *Graph[V, W]) Add(weight W, parent, state V) error {
 		return fmt.Errorf("edge %v -> %v is already present in graph", parent, state)
 	}
 
-	stateVertex, err := g.Search(state)
+	stateVertex, _ := g.Search(state)
 	if stateVertex != nil {
 		parentVertex.AddEdge(stateVertex, weight)
 		return nil

@@ -24,11 +24,13 @@ func Test_Add(t *testing.T) {
 		{
 			name:   "Add to an empty graph",
 			data:   "A",
-			parent: "",
+			parent: "Z",
 			want: func(err error) {
 				is.Nil(err)
-				is.EqualValues(len(graph.Vertices), 1)
-				a := graph.Vertices[0]
+				is.EqualValues(len(graph.Vertices), 2)
+				z := graph.Vertices[0]
+				is.Equal(z.GetState(), "Z")
+				a := graph.Vertices[1]
 				is.Equal(a.GetState(), "A")
 			},
 		},
@@ -38,12 +40,12 @@ func Test_Add(t *testing.T) {
 			parent: "A",
 			want: func(err error) {
 				is.Nil(err)
-				is.EqualValues(len(graph.Vertices), 2)
-				b := graph.Vertices[1]
+				is.EqualValues(len(graph.Vertices), 3)
+				b := graph.Vertices[2]
 				is.Equal(b.GetState(), "B")
 				is.EqualValues(len(b.Edges), 0)
 
-				a := graph.Vertices[0]
+				a := graph.Vertices[1]
 				is.EqualValues(len(a.Edges), 1)
 				is.True(a.HasEdge(b.GetState()))
 			},
@@ -54,13 +56,13 @@ func Test_Add(t *testing.T) {
 			parent: "B",
 			want: func(err error) {
 				is.Nil(err)
-				is.EqualValues(len(graph.Vertices), 2)
+				is.EqualValues(len(graph.Vertices), 3)
 
-				b := graph.Vertices[1]
+				b := graph.Vertices[2]
 				is.Equal(b.GetState(), "B")
 				is.EqualValues(len(b.Edges), 1)
 
-				a := graph.Vertices[0]
+				a := graph.Vertices[1]
 				is.EqualValues(len(a.Edges), 1)
 				is.True(a.HasEdge(b.GetState()))
 				is.True(b.HasEdge(a.GetState()))
@@ -72,16 +74,23 @@ func Test_Add(t *testing.T) {
 			parent: "B",
 			want: func(err error) {
 				is.Error(err, fmt.Errorf("edge B -> A already present in graph"))
-				is.EqualValues(len(graph.Vertices), 2)
+				is.EqualValues(len(graph.Vertices), 3)
 			},
 		},
 		{
 			name:   "Add with non-existent parent",
-			data:   "C",
-			parent: "Z",
+			data:   "B",
+			parent: "Y",
 			want: func(err error) {
-				is.Error(err, fmt.Errorf("data Z not found in graph"))
-				is.EqualValues(len(graph.Vertices), 2)
+				is.Nil(err)
+				is.EqualValues(len(graph.Vertices), 4)
+
+				y := graph.Vertices[3]
+				is.Equal(y.GetState(), "Y")
+				is.Equal(len(y.Edges), 1)
+
+				b := graph.Vertices[2]
+				is.True(y.HasEdge(b.GetState()))
 			},
 		},
 	}
