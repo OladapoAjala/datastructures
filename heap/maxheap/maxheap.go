@@ -16,8 +16,10 @@ type MaxHeap[K constraints.Ordered, V comparable] struct {
 type MaxHeaper[K constraints.Ordered, V comparable] interface {
 	heap.Heaper[K, V]
 	FindMax() (*data.Data[K, V], error)
-	DeleteMax() error
+	DeleteMax() (*data.Data[K, V], error)
 }
+
+var _ MaxHeaper[string, string] = new(MaxHeap[string, string])
 
 func NewMaxHeap[K constraints.Ordered, V comparable]() *MaxHeap[K, V] {
 	return &MaxHeap[K, V]{

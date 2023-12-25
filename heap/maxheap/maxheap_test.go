@@ -146,6 +146,20 @@ func Test_DeleteMax(t *testing.T) {
 				is.Equal(max.Value, "value7")
 			},
 		},
+		{
+			name: "DeleteMax from a non-empty heap",
+			want: func(max *data.Data[int, string], err error) {
+				is.Nil(err)
+				is.Equal(max.Value, "value5")
+			},
+		},
+		{
+			name: "DeleteMax from a non-empty heap",
+			want: func(max *data.Data[int, string], err error) {
+				is.Nil(err)
+				is.Equal(max.Value, "value4")
+			},
+		},
 	}
 
 	for _, tt := range tests {
