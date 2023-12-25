@@ -8,23 +8,25 @@ import (
 
 func Test_Dequeue(t *testing.T) {
 	is := assert.New(t)
-	pq := NewPQueue[string]()
-	pq.Enqueue("A", "B", "D")
+	pq := NewPQueue[int, string]()
+	is.Nil(pq.Enqueue(-2, "C"))
+	is.Nil(pq.Enqueue(0, "A"))
+	is.Nil(pq.Enqueue(-1, "B"))
 
 	tests := []struct {
 		name   string
-		pQueue *PQueue[string]
+		pQueue *PQueue[int, string]
 		want   func(string, error)
 	}{
 		{
-			name:   "add element to the queue",
+			name:   "deque element",
 			pQueue: pq,
 			want: func(data string, err error) {
 				is.Nil(err)
-				is.Equal(data, "D")
+				is.Equal(data, "A")
 				max, err := pq.FindMax()
 				is.Nil(err)
-				is.Equal(max.GetKey(), "B")
+				is.Equal(max.GetValue(), "B")
 				is.EqualValues(pq.Heap.GetSize(), 2)
 			},
 		},

@@ -5,14 +5,8 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type IQueuer[K any] interface {
-	Insert(K)
-	DeleteMax()
-	FindMax()
-}
-
-type PQueue[T constraints.Ordered] struct {
-	*maxheap.MaxHeap[T, T]
+type PQueue[K constraints.Ordered, V comparable] struct {
+	*maxheap.MaxHeap[K, V]
 }
 
 type IPQueue[T comparable] interface {
@@ -20,26 +14,24 @@ type IPQueue[T comparable] interface {
 	Enqueue(T) error
 }
 
-func NewPQueue[T constraints.Ordered]() *PQueue[T] {
-	return &PQueue[T]{
-		maxheap.NewMaxHeap[T, T](),
+func NewPQueue[K constraints.Ordered, V comparable]() *PQueue[K, V] {
+	return &PQueue[K, V]{
+		maxheap.NewMaxHeap[K, V](),
 	}
 }
 
-func (pq *PQueue[T]) Dequeue() (T, error) {
+func (pq *PQueue[K, V]) Dequeue() (V, error) {
 	max, err := pq.DeleteMax()
 	if err != nil {
-		return *new(T), err
+		return *new(V), err
 	}
-	return max.GetKey(), nil
+	return max.GetValue(), nil
 }
 
-func (pq *PQueue[T]) Enqueue(data ...T) error {
-	for _, d := range data {
-		err := pq.Insert(d, d)
-		if err != nil {
-			return err
-		}
+func (pq *PQueue[K, V]) Enqueue(key K, val V) error {
+	err := pq.Insert(key, val)
+	if err != nil {
+		return err
 	}
 	return nil
 }
