@@ -139,6 +139,14 @@ func Test_DeleteMax(t *testing.T) {
 			},
 		},
 		{
+			name: "DeleteMax from heap with one element",
+			keys: []int{3},
+			want: func(max *data.Data[int, string], err error) {
+				is.Nil(err)
+				is.Equal(max.Value, "value3")
+			},
+		},
+		{
 			name: "DeleteMax from a non-empty heap",
 			keys: []int{3, 1, 5, 2, 4, 7},
 			want: func(max *data.Data[int, string], err error) {
@@ -165,7 +173,7 @@ func Test_DeleteMax(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for _, key := range tt.keys {
-				mh.Insert(key, fmt.Sprintf("value%d", key))
+				is.Nil(mh.Insert(key, fmt.Sprintf("value%d", key)))
 			}
 			max, err := mh.DeleteMax()
 			tt.want(max, err)
