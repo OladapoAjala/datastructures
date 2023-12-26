@@ -78,7 +78,7 @@ func (da *DynamicArray[T]) Set(index int32, data T) error {
 }
 
 func (da *DynamicArray[T]) Insert(index int32, data T) error {
-	if index >= da.capacity || da.length == da.capacity {
+	if index >= da.capacity || (index+1) >= da.capacity {
 		newArray := make([]T, 2*da.capacity)
 		copy(newArray, da.array)
 		da.array = newArray

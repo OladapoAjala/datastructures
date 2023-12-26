@@ -51,11 +51,32 @@ func Test_Dequeue(t *testing.T) {
 				is.EqualValues(pq.Heap.GetSize(), 2)
 			},
 		},
+		{
+			name: "deque element -- again",
+			want: func(data string, err error) {
+				is.Nil(err)
+				is.Equal(data, "B")
+				min, err := pq.FindMin()
+				is.Nil(err)
+				is.Equal(min.GetValue(), "C")
+				is.EqualValues(pq.Heap.GetSize(), 1)
+			},
+		},
+		{
+			name: "deque element -- empty the queue",
+			want: func(data string, err error) {
+				is.Nil(err)
+				is.Equal(data, "C")
+				is.EqualValues(pq.Heap.GetSize(), 0)
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			pq = tt.setup()
+			if tt.setup != nil {
+				pq = tt.setup()
+			}
 			data, err := pq.Dequeue()
 			tt.want(data, err)
 		})
