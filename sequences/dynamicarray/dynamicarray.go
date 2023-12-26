@@ -25,9 +25,9 @@ func NewDynamicArray[T comparable](data ...T) *DynamicArray[T] {
 	da := new(DynamicArray[T])
 
 	if len(data) == 0 {
-		da.array = make([]T, 1)
+		da.array = make([]T, 2)
 		da.length = 0
-		da.capacity = 1
+		da.capacity = 2
 		return da
 	}
 
@@ -127,6 +127,10 @@ func (da *DynamicArray[T]) Delete(index int32) error {
 	da.length--
 
 	if da.GetSize() <= da.Capacity()/4 {
+		if da.Capacity() == 2 {
+			return nil
+		}
+
 		output := make([]T, da.Capacity()/2)
 		copy(output, da.array)
 		da.array = output

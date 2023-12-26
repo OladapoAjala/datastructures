@@ -9,9 +9,9 @@ type PQueue[K constraints.Ordered, V comparable] struct {
 	*maxheap.MaxHeap[K, V]
 }
 
-type IPQueue[T comparable] interface {
-	Dequeue() (T, error)
-	Enqueue(T) error
+type IPQueue[K constraints.Ordered, V comparable] interface {
+	Dequeue() (V, error)
+	Enqueue(K, V) error
 }
 
 func NewPQueue[K constraints.Ordered, V comparable]() *PQueue[K, V] {
