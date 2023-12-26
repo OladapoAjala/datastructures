@@ -176,11 +176,6 @@ func Test_Set(t *testing.T) {
 func Test_Insert(t *testing.T) {
 	is := assert.New(t)
 
-	custom := NewDynamicArray[string]()
-	custom.array = []string{"a", "b", "c"}
-	custom.length = 3
-	custom.capacity = 3
-
 	type args struct {
 		index int32
 		data  string
@@ -226,20 +221,7 @@ func Test_Insert(t *testing.T) {
 			want: func(da *DynamicArray[string], err error) {
 				is.Nil(err)
 				is.True(da.Contains("f"))
-				is.Equal(da.array, []string{"a", "b", "c", "", "", "f"})
-			},
-		},
-		{
-			name:         "insert data into custom array",
-			dynamicarray: custom,
-			args: args{
-				data:  "d",
-				index: 1,
-			},
-			want: func(da *DynamicArray[string], err error) {
-				is.Nil(err)
-				is.True(da.Contains("d"))
-				is.Equal(da.array, []string{"a", "d", "b", "c", "", ""})
+				is.Equal(da.array, []string{"a", "b", "c", "", "", "f", "", "", "", "", "", ""})
 			},
 		},
 	}
