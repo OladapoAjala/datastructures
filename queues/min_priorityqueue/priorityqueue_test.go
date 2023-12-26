@@ -1,4 +1,4 @@
-package priorityqueue
+package minpriorityqueue
 
 import (
 	"fmt"
@@ -28,9 +28,9 @@ func Test_Dequeue(t *testing.T) {
 			want: func(data string, err error) {
 				is.Nil(err)
 				is.Equal(data, "A")
-				max, err := pq.FindMax()
+				min, err := pq.FindMin()
 				is.Error(err, fmt.Errorf("empty heap"))
-				is.Nil(max)
+				is.Nil(min)
 			},
 		},
 		{
@@ -44,10 +44,10 @@ func Test_Dequeue(t *testing.T) {
 			},
 			want: func(data string, err error) {
 				is.Nil(err)
-				is.Equal(data, "C")
-				max, err := pq.FindMax()
+				is.Equal(data, "A")
+				min, err := pq.FindMin()
 				is.Nil(err)
-				is.Equal(max.GetValue(), "B")
+				is.Equal(min.GetValue(), "B")
 				is.EqualValues(pq.Heap.GetSize(), 2)
 			},
 		},

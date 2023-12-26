@@ -10,7 +10,8 @@
 
 3. **Queues**
    - Normal Queue
-   - Priority Queue
+   - Priority Queue (Max)
+   - Min Priority Queue
 
 4. **Stacks**
 
