@@ -16,7 +16,7 @@
 
 5. **Heaps**
    - Min Heap
-   - Max Heap (TODO)
+   - Max Heap
 
 6. **Trees**
    - AVL Trees
