@@ -20,12 +20,12 @@ func NewPQueue[K constraints.Ordered, V comparable]() *PQueue[K, V] {
 	}
 }
 
-func (pq *PQueue[K, V]) Dequeue() (V, error) {
+func (pq *PQueue[K, V]) Dequeue() (K, V, error) {
 	min, err := pq.DeleteMin()
 	if err != nil {
-		return *new(V), err
+		return *new(K), *new(V), err
 	}
-	return min.GetValue(), nil
+	return min.GetKey(), min.GetValue(), nil
 }
 
 func (pq *PQueue[K, V]) Enqueue(key K, val V) error {

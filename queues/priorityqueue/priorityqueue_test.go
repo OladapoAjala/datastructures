@@ -15,7 +15,7 @@ func Test_Dequeue(t *testing.T) {
 		name   string
 		setup  func() *PQueue[int, string]
 		pQueue *PQueue[int, string]
-		want   func(string, error)
+		want   func(int, string, error)
 	}{
 		{
 			name: "deque from queue with single element",
@@ -25,9 +25,10 @@ func Test_Dequeue(t *testing.T) {
 				is.Nil(err)
 				return pq
 			},
-			want: func(data string, err error) {
+			want: func(key int, value string, err error) {
 				is.Nil(err)
-				is.Equal(data, "A")
+				is.Equal(value, "A")
+				is.Equal(key, 0)
 				max, err := pq.FindMax()
 				is.Error(err, fmt.Errorf("empty heap"))
 				is.Nil(max)
@@ -42,9 +43,10 @@ func Test_Dequeue(t *testing.T) {
 				is.Nil(pq.Enqueue(1, "B"))
 				return pq
 			},
-			want: func(data string, err error) {
+			want: func(key int, value string, err error) {
 				is.Nil(err)
-				is.Equal(data, "C")
+				is.Equal(value, "C")
+				is.Equal(key, 2)
 				max, err := pq.FindMax()
 				is.Nil(err)
 				is.Equal(max.GetValue(), "B")
@@ -56,8 +58,8 @@ func Test_Dequeue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pq = tt.setup()
-			data, err := pq.Dequeue()
-			tt.want(data, err)
+			key, value, err := pq.Dequeue()
+			tt.want(key, value, err)
 		})
 	}
 }

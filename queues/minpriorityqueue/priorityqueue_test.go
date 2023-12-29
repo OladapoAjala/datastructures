@@ -15,7 +15,7 @@ func Test_Dequeue(t *testing.T) {
 		name   string
 		setup  func() *PQueue[int, string]
 		pQueue *PQueue[int, string]
-		want   func(string, error)
+		want   func(int, string, error)
 	}{
 		{
 			name: "deque from queue with single element",
@@ -25,9 +25,10 @@ func Test_Dequeue(t *testing.T) {
 				is.Nil(err)
 				return pq
 			},
-			want: func(data string, err error) {
+			want: func(key int, value string, err error) {
 				is.Nil(err)
-				is.Equal(data, "A")
+				is.Equal(value, "A")
+				is.Equal(key, 0)
 				min, err := pq.FindMin()
 				is.Error(err, fmt.Errorf("empty heap"))
 				is.Nil(min)
@@ -42,9 +43,10 @@ func Test_Dequeue(t *testing.T) {
 				is.Nil(pq.Enqueue(1, "B"))
 				return pq
 			},
-			want: func(data string, err error) {
+			want: func(key int, value string, err error) {
 				is.Nil(err)
-				is.Equal(data, "A")
+				is.Equal(value, "A")
+				is.Equal(key, 0)
 				min, err := pq.FindMin()
 				is.Nil(err)
 				is.Equal(min.GetValue(), "B")
@@ -53,9 +55,10 @@ func Test_Dequeue(t *testing.T) {
 		},
 		{
 			name: "deque element -- again",
-			want: func(data string, err error) {
+			want: func(key int, value string, err error) {
 				is.Nil(err)
-				is.Equal(data, "B")
+				is.Equal(value, "B")
+				is.Equal(key, 1)
 				min, err := pq.FindMin()
 				is.Nil(err)
 				is.Equal(min.GetValue(), "C")
@@ -64,9 +67,10 @@ func Test_Dequeue(t *testing.T) {
 		},
 		{
 			name: "deque element -- empty the queue",
-			want: func(data string, err error) {
+			want: func(key int, value string, err error) {
 				is.Nil(err)
-				is.Equal(data, "C")
+				is.Equal(value, "C")
+				is.Equal(key, 2)
 				is.EqualValues(pq.Heap.GetSize(), 0)
 			},
 		},
@@ -77,8 +81,8 @@ func Test_Dequeue(t *testing.T) {
 			if tt.setup != nil {
 				pq = tt.setup()
 			}
-			data, err := pq.Dequeue()
-			tt.want(data, err)
+			key, value, err := pq.Dequeue()
+			tt.want(key, value, err)
 		})
 	}
 }
